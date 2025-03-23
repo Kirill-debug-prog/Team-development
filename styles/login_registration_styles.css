@@ -47,7 +47,7 @@ a {
 }
 
 .content {
-  background: url('/images/login_registration_bg.jpg') center/cover no-repeat var(--color-dark);
+  background: url('../images/login_registration_bg.jpg') center/cover no-repeat var(--color-dark);
   height: 100vh;
 
   display: flex;
