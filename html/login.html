@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MentorsConnect</title>
+    <link rel="stylesheet" href="/styles/login_registration_styles.css">
+    <link rel="stylesheet" href="/styles/normalization_fonts_styles.css">
+</head>
+<body>
+    <main class="content">
+        <div class="form-wrapper">
+            <h1 class="form-title">Вход</h1>
+            <form class="form" action="" method="post">
+                <label class="visually-hidden" for="login">Email или номер телефона</label>
+                <input class="form-input" id="login" placeholder="Email/Телефон" type="text" name="user_login" required/>
+ 
+                <label class="visually-hidden" for="password">Пароль</label>
+                <input class="form-input" id="password" placeholder="Пароль" type="password" name="user_password" required/>
+
+                <button class="button" type="submit">
+                    Войти
+                </button>
+                <a href="./registration.html" class="button gray">Регистрация</a>  
+            </form>
+        </div>
+    </main>
+</body>
+</html>

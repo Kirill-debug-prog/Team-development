@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MentorsConnect</title>
+    <link rel="stylesheet" href="/styles/login_registration_styles.css">
+    <link rel="stylesheet" href="/styles/normalization_fonts_styles.css">
+</head>
+<body>
+    <main class="content">
+        <div class="form-container">
+        <div class="form-wrapper">
+            <h1 class="form-title">Регистрация</h1>
+            <form class="form" action="" method="post">
+                <label class="visually-hidden" for="second_name">Фамилия</label>
+                <input class="form-input" id="second_name" placeholder="Фамилия" type="text" name="user_second_name" required/>
+ 
+                <label class="visually-hidden" for="name">Имя</label>
+                <input class="form-input" id="name" placeholder="Имя" type="text" name="user_name" required/>
+
+                <!-- required(?) -->
+                <label class="visually-hidden" for="patronymic">Отчество</label>
+                <input class="form-input" id="patronymic" placeholder="Отчество" type="text" name="user_patronymic"/>
+
+                <label class="visually-hidden" for="login">Email или номер телефона</label>
+                <input class="form-input" id="login" placeholder="Email/Телефон" type="text" name="user_login" required/>
+
+                <label class="visually-hidden" for="password">Пароль</label>
+                <input class="form-input" id="password" placeholder="Пароль" type="password" name="user_password" required/>
+
+                <label class="visually-hidden" for="password_repeated">Повторите пароль</label>
+                <input class="form-input" id="password_repeated" placeholder="Повторите пароль" type="password" name="user_password_repeated" required/>
+
+                <button class="button" type="submit">
+                    Зарегистрироваться
+                </button>
+            </form>
+        </div>
+        </div>
+    </main>
+
+</body>
+</html>
