@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MentorsConnect</title>
+    <link rel="icon" href="../favicon.ico" sizes="32x32">
+    <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png">
     <link rel="stylesheet" href="../styles/mentors_cards_list_styles.css">
     <link rel="stylesheet" href="../styles/normalization_fonts_styles.css">
 </head>
@@ -71,8 +74,23 @@
             </div>
         </div>
     </header>
-    <main class="container">
+    <main class="main container">
         <h1 class="page-title">Список анкет</h1>
+        <div class="search-filter-mobile">
+            <h2 class="visually-hidden">Поиск и фильтры</h2>
+            <button class="open-filter-button"
+                type="button">
+                <span class="visually-hidden">Открыть фильтр</span>
+            </button>
+            <form class="search-form"  action="" method="">
+                <label class="visually-hidden" for="search">Поиск</label>
+                <input class="search-form-input input" type="search" id="search" placeholder="Поиск ментора" />
+                <button class="search-form-button"
+                    type="submit">
+                    <span class="visually-hidden">Найти</span>
+                </button>
+            </form>
+        </div>
         <div class="flex-wrapper">
             <aside class="search-filter">
                 <h2 class="visually-hidden">Поиск и фильтры</h2>
@@ -85,6 +103,11 @@
                         <span class="visually-hidden">Найти</span>
                     </button>
                 </form>
+                
+                <div class="mobile-filter-header">
+                    <h2 class="filter-title">Фильтр</h2>
+                    <button class="close-filter-button"><span class="visually-hidden">Закрыть</span></button>
+                </div>
 
                 <form class="filter-form" action="" method="">
                     <div class="complex-input-wrapper">
@@ -229,9 +252,57 @@
             </div>
         </article>
             </section>
-            
         </div>
     </main>
+    <footer class="footer">
+        <div class="footer-wrapper container">
+            <div class="footer-column">
+                <h2 class="footer-column-title">ТЕЛЕФОН</h2>
+                <a href="tel:+79001234567" class="footer-column-body">+7 (900) 123-45-67</a>
+            </div>
+
+            <div class="footer-column">
+                <h2 class="footer-column-title">АДРЕС</h2>
+                <address class="footer-column-body">г. Томск, ул. Примерная, д. 10</address>
+            </div>
+
+            <div class="footer-column">
+                <h2 class="footer-column-title">EMAIL</h2>
+                <a href="mailto:info@example.com" class="footer-column-body">info@example.com</a>
+            </div>
+
+            <div class="footer-column">
+                <h2 class="footer-column-title sol1als-title">КОНТАКТЫ</h2>
+                <div class="footer-soc1als">
+                    <ul class="footer-soc1als-list">
+                        <li class="footer-soc1als-item">
+                            <a href="https://web.telegram.org/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/telegram.png" alt="Иконка Teledram" width="50" height="50" />
+                            </a>
+                        </li>
+
+                        <li class="footer-soc1als-item">
+                            <a href="https://www.facebook.com/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/facebook.png" alt="Иконка Facebook" width="50" height="50" />
+                            </a>
+                        </li>
+
+                        <li class="footer-soc1als-item">
+                            <a href="https://vk.com/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/vk.png" alt="Иконка ВК" width="50" height="50" />
+                            </a>
+                        </li>
+
+                        <li class="footer-soc1als-item">
+                            <a href="https://www.whatsapp.com/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/whatsapp.png" alt="Иконка WhatsApp" width="50" height="50" />
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script src="../js/mentors_cards_list_script.js"></script>
 </body>
