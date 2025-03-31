@@ -1,21 +1,55 @@
-using ConsultantPlatform.Models.Entity;
+﻿using ConsultantPlatform.Models.Entity;
 using ConsultantPlatform.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Добавление контроллеров
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<UserService>();
 
+// 🔹 Добавляем поддержку Swagger с авторизацией
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Consultant Platform API", Version = "v1" });
+
+    // Настраиваем схему безопасности (Bearer Token)
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Введите JWT токен в формате: Bearer {your_token}"
+    });
+
+    // Указываем, что все запросы требуют токен
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {} // Без конкретных ролей
+        }
+    });
+});
+
+// 🔹 Добавляем зависимости
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ConsultantCardService>();
+
+// 🔹 Настройки JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
@@ -27,12 +61,10 @@ builder.Services.AddCors(options =>
                         .AllowAnyHeader());
 });
 
-// Add DbContext
+// 🔹 Подключаем БД
 builder.Services.AddDbContext<MentiContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))); // ������� ��� ����� ������ �����������
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -53,14 +85,15 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 });
-// Add authorization
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-app.UseCors("AllowAll"); // �������� CORS ����� UseAuthorization()
+// Включаем CORS перед UseAuthorization()
+app.UseCors("AllowAll");
 
-// Configure the HTTP request pipeline.
+// Включаем Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -69,9 +102,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); // �����: ����� UseAuthorization()
+// Включаем аутентификацию и авторизацию
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+//git push --set-upstream origin master

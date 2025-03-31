@@ -44,8 +44,30 @@ public class AuthController : ControllerBase
             return BadRequest(new { Message = "Invalid password" });
         }
 
-        var token = GenerateJwtToken(model.Login);
-        return Ok(new { token });
+        // 2. Создаём клеймы (данные, которые будем хранить в токене)
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, existingUser.Id.ToString()),  // ID пользователя
+            new Claim(ClaimTypes.Name, existingUser.Login),
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        // 4. Генерируем токен
+        var token = new JwtSecurityToken(
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(6), // Срок действия
+            signingCredentials: creds
+        );
+
+        return Ok(new
+        {
+            Token = new JwtSecurityTokenHandler().WriteToken(token),
+            Expires = token.ValidTo
+        });
     }
 
     [HttpPost("register")]
@@ -95,30 +117,4 @@ public class AuthController : ControllerBase
             return StatusCode(500, "An error occurred during registration");
         }
     }
-
-
-
-    private string GenerateJwtToken(string username)
-    {
-        var jwtSettings = _config.GetSection("Jwt");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
-            signingCredentials: creds
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
 }
