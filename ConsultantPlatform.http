@@ -1,0 +1,6 @@
+@ConsultantPlatform_HostAddress = http://localhost:5055
+
+GET {{ConsultantPlatform_HostAddress}}/
+Accept: application/json
+
+###
