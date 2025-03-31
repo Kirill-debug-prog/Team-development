@@ -178,7 +178,7 @@ namespace ConsultantPlatform.Controllers
                 {
                     return NotFound();
                 }
-
+                //комментарий
                 var deletedCard = await _consultantCardService.DeleteConsultantCardAsync(card);
                 return Ok(deletedCard);
             }
