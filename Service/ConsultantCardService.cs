@@ -15,11 +15,29 @@ namespace ConsultantPlatform.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<MentorCard>> GetConsultantCardsAsync()
+        public async Task<List<MentorCard>> GetConsultantCardsAsync( int? startPrice, int? endPrice, int? expirience, string? fieldActivity)
         {
             try
             {
-                return await _context.MentorCards.ToListAsync();
+                var query = _context.MentorCards.Include(c => c.MentorCardsCategories).ThenInclude(mc => mc.Category).AsQueryable();
+
+                if (startPrice.HasValue)
+                    query = query.Where(c => c.PricePerHours >= startPrice.Value);
+
+                if (endPrice.HasValue)
+                    query = query.Where(c => c.PricePerHours <= endPrice.Value);
+
+                if (expirience.HasValue)
+                    query = query.Where(c => c.Experience >= expirience.Value);
+
+                if (!string.IsNullOrEmpty(fieldActivity))
+                {
+                    var categories = fieldActivity.Split(',').Select(c => c.Trim()).ToList();
+
+                    query = query.Where(m => m.MentorCardsCategories
+                        .Any(mc => categories.Contains(mc.Category.Name)));
+                }
+                return await query.ToListAsync();
             }
             catch (Exception ex)
             {
