@@ -29,11 +29,15 @@ namespace ConsultantPlatform.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IEnumerable<ConsultantCardDTO>>> GetConsultantCards()
+        public async Task<ActionResult<IEnumerable<ConsultantCardDTO>>> GetConsultantCards(
+            [FromQuery] int? startPrice, 
+            [FromQuery] int? endPrice, 
+            [FromQuery] int? expirience, 
+            [FromQuery] string? fieldActivity)
         {
             try
             {
-                var consultantCards = await _consultantCardService.GetConsultantCardsAsync();
+                var consultantCards = await _consultantCardService.GetConsultantCardsAsync(startPrice, endPrice, expirience, fieldActivity);
                 return Ok(consultantCards);
             }
             catch (Exception ex)
