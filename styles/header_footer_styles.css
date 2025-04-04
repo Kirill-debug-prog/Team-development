@@ -1,0 +1,182 @@
+:root {
+  --color-dark: #000000;
+  --color-light: #FFFFFF;
+}
+
+.header{
+  background-color:  #F5F5F5;
+}
+
+.header,
+.footer {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 20px;
+  color: var(--color-dark);
+}
+
+a {
+  color: currentColor;
+  text-decoration: none;
+}
+
+address {
+  font-style: normal;
+}
+
+.header-slogan {
+  background: url('../images/header_slogan_bg.jpg') center/cover no-repeat #A8A8A8;
+  text-align: center;
+  color: #585858;
+  font-weight: 400;
+  font-size: 24px;
+}
+
+.header-container {
+  margin-inline: auto;
+  max-width: 2000px;
+
+}
+
+.header-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-inline: 20px;
+}
+
+.header-logo {
+  display: flex;
+  column-gap: 15px;
+  font-size: 24px;
+}
+
+.header-menu-user-wrapper {
+  display: flex;
+  column-gap: 90px;
+  align-items: center;
+  font-size: 12px;
+  padding-block: 15px;
+}
+
+.header-menu-list {
+  display: flex;
+  column-gap: 20px;
+}
+
+.header-menu-link:hover {
+  color: #D85B53;
+}
+
+.header-menu-icon,
+.header-user-avatar {
+  margin-inline: auto;
+}
+
+.header-user-avatar {
+  clip-path: circle(50%);
+}
+
+.footer-container {
+  margin-inline: auto;
+  padding-inline: 20px;
+  max-width: 2000px;
+}
+
+.footer {
+  background-image: linear-gradient( 90deg, #7DC58A, #1E4A34);
+  color: var(--color-light);
+  font-weight: 700;
+}
+
+.footer-wrapper {
+  display: flex;
+  justify-content: space-between;
+  padding: 82px 56px;
+  text-align: center;
+}
+
+.footer-column-title {
+  font-size: 20px;
+
+}
+
+.footer-column-title:not(:last-child) {
+  margin-bottom: 26px;
+}
+
+.footer-column-title.sol1als-title:not(:last-child) {
+  margin-bottom: 13px;
+}
+
+.footer-soc1als-list {
+  display: flex;
+  column-gap: 16px;
+  justify-content: center;
+}
+
+@media(max-width: 1200px) {
+  .footer-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 40px;
+    padding-block: 50px;
+  }
+
+  .footer-column-title:not(:last-child) {
+    margin-bottom: 12px;
+  }
+  
+  .footer-column-title.sol1als-title:not(:last-child) {
+    margin-bottom: 6px;
+  }
+}
+
+@media(max-width: 1000px) {
+  .header-logo-name {
+    display: none;
+  }
+
+  .footer {
+    font-size: 18px;
+  }
+}
+
+@media(max-width: 670px) {
+
+  .header-logo,
+  .header-user {
+    display: none;
+  }
+
+  .header-slogan {
+    font-size: 16px;
+  }
+
+  .header-menu-icon {
+    width: 30px;
+  }
+
+  .header-menu-user-wrapper {
+    padding-block: 5px;
+  }
+
+  .header-body {
+    justify-content: center;
+  }
+
+  .footer {
+    font-size: 16px;
+  }
+  
+  .footer-wrapper {
+    grid-template-columns: 1fr;
+    row-gap: 15px;
+    padding-block: 30px;
+    font-size: 14px;
+  }
+
+  .footer-column-title:not(:last-child) {
+    margin-bottom: 0;
+  }
+}
