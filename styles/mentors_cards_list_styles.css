@@ -312,8 +312,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .dropdown-options {
-  display: none; 
-  /* display: flex; */
+  display: none;
   justify-content:flex-start;
   flex-direction: column;
   position: absolute;
