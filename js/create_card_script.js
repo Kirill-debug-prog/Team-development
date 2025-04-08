@@ -50,3 +50,15 @@ function removeExperience(button) {
         });
     }
 }
+
+function toggleDropdown() {
+    var options = document.getElementById("options");
+    options.style.display = options.style.display === "block" ? "none" : "block";
+}
+
+document.addEventListener("click", function(event) {
+    var dropdown = document.querySelector(".dropdown-container");
+    if (!dropdown.contains(event.target)) {
+        document.getElementById("options").style.display = "none";
+    }
+});

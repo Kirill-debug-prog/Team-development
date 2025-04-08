@@ -140,6 +140,45 @@ input[type="number"]::-webkit-inner-spin-button {
   background-image: linear-gradient(90deg, #01C7FC 0%, #00A1D8 50%, #0056D6 100%);
 }
 
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown {
+  width: auto;
+  padding: 10px;
+  border: 1px solid #CCC;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #E5E4E4;
+  text-align: center;
+}
+
+.dropdown-options {
+  display: none;
+  justify-content:flex-start;
+  flex-direction: column;
+  position: absolute;
+  width: 100%;
+  background: #E5E4E4;
+  border: 1px solid #CCC;
+  border-radius: 5px;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.dropdown-options label {
+  display: block;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.dropdown-options label:hover {
+  background: #5882FF;
+}
+
 .description-input {
   margin-inline: -35px;
   padding-block: 10px;

@@ -110,11 +110,16 @@
 
                     <button type="button" class="add-experience-button" onclick="addExperience()">Добавить</button>   
                 </div>
-
-                <div class="input-wrapper">
-                    <label class="label" for="competence">Компетенции</label>
-                    <input class="input" id="competence" type="text" maxlength="200" 
-                    spellcheck="true" required/>       
+                
+                <div class="dropdown-container">
+                    <div class="dropdown" onclick="toggleDropdown()">Компетенции</div>
+                    <div class="dropdown-options" id="options">
+                        <label><input type="checkbox" value="it"> Информационные технологии</label>
+                        <label><input type="checkbox" value="finance"> Финансы</label>
+                        <label><input type="checkbox" value="marketing"> Маркетинг</label>
+                        <label><input type="checkbox" value="healthcare"> Здравоохранение</label>
+                        <label><input type="checkbox" value="education"> Образование</label>
+                    </div>
                 </div>
 
                 <div class="input-wrapper">
