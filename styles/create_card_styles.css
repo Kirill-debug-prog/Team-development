@@ -117,8 +117,40 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 5px;
 }
   
-.remove-experience-button:hover {
-  background: #5a0000;
+@media (hover: hover) {
+  .remove-experience-button:hover {
+    background: #5a0000;
+  }
+
+  .add-experience-button:hover {
+    background-image: linear-gradient(90deg, #01C7FC 0%, #00A1D8 50%, #0056D6 100%);
+  }
+
+  .dropdown-options label:hover {
+    background: #5882FF;
+  }
+
+  .button:hover {
+    background: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
+  }
+}
+
+@media (hover: none) {
+  .remove-experience-button:active {
+    background: #5a0000;
+  }
+
+  .add-experience-button:active {
+    background-image: linear-gradient(90deg, #01C7FC 0%, #00A1D8 50%, #0056D6 100%);
+  }
+
+  .dropdown-options label:active {
+    background: #5882FF;
+  }
+
+  .button:active {
+    background: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
+  }
 }
 
 .add-experience-button {
@@ -134,10 +166,6 @@ input[type="number"]::-webkit-inner-spin-button {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-.add-experience-button:hover {
-  background-image: linear-gradient(90deg, #01C7FC 0%, #00A1D8 50%, #0056D6 100%);
 }
 
 .dropdown-container {
@@ -175,10 +203,6 @@ input[type="number"]::-webkit-inner-spin-button {
   cursor: pointer;
 }
 
-.dropdown-options label:hover {
-  background: #5882FF;
-}
-
 .description-input {
   margin-inline: -35px;
   padding-block: 10px;
@@ -203,10 +227,6 @@ input[type="number"]::-webkit-inner-spin-button {
   color: var(--color-light);
   user-select: none;
   white-space: nowrap;
-}
-  
-.button:hover {
-  background: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
 }
 
 .side-image {

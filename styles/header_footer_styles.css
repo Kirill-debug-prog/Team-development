@@ -64,8 +64,16 @@ address {
   column-gap: 20px;
 }
 
-.header-menu-link:hover {
-  color: #D85B53;
+@media (hover: hover) {
+  .header-menu-link:hover {
+    color: #D85B53;
+  }
+}
+
+@media (hover: none) {
+  .header-menu-link:active {
+    color: #D85B53;
+  }
 }
 
 .header-menu-icon,

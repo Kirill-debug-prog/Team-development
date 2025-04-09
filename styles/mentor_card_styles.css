@@ -73,8 +73,16 @@ main {
   transition-duration: 0.2s;
 }
 
-.message-button:hover {
-  background: #ff8400;
+@media (hover: hover) {
+  .message-button:hover {
+    background: #ff8400;
+  }
+}
+
+@media (hover: none) {
+  .message-button:active {
+    background: #ff8400;
+  }
 }
 
 .card-body {
