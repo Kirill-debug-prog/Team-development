@@ -75,13 +75,13 @@ main {
 
 @media (hover: hover) {
   .message-button:hover {
-    background: #ff8400;
+    background-image: linear-gradient(-90deg, #7f469d 0%, #8338c4 50%, #8a35da 75%, #af41ee 87.5%, #e65ffb 100%);
   }
 }
 
 @media (hover: none) {
   .message-button:active {
-    background: #ff8400;
+    background-image: linear-gradient(-90deg, #7f469d 0%, #8338c4 50%, #8a35da 75%, #af41ee 87.5%, #e65ffb 100%);
   }
 }
 
