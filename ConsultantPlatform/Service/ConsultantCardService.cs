@@ -80,55 +80,123 @@ namespace ConsultantPlatform.Service
             }
         }
 
-        public async Task<MentorCard> UpdateConsultantCardAsync(MentorCard card)
+        public async Task<MentorCard?> UpdateConsultantCardAsync(Guid cardId, MentorCard cardUpdateData, Guid currentUserId)
         {
-            if (card == null)
+            // Принимаем cardId для поиска, cardUpdateData для данных, currentUserId для проверки
+            if (cardUpdateData == null)
             {
-                throw new ArgumentNullException(nameof(card));
+                _logger.LogWarning("UpdateConsultantCardAsync called with null card data.");
+                throw new ArgumentNullException(nameof(cardUpdateData));
             }
+
+            _logger.LogInformation("Attempting to update consultant card {CardId} by User {UserId}", cardId, currentUserId);
 
             try
             {
-                var existingCard = await _context.MentorCards.FindAsync(card.Id);
+                // 1. Найти существующую карточку
+                var existingCard = await _context.MentorCards.FindAsync(cardId);
+
+                // 2. Проверить, найдена ли карточка
                 if (existingCard == null)
                 {
-                    throw new KeyNotFoundException($"Consultant card with ID {card.Id} not found");
+                    _logger.LogWarning("Attempted to update non-existent consultant card with ID {CardId}", cardId);
+                    return null; // Возвращаем null, чтобы контроллер вернул NotFound
                 }
 
-                _context.Entry(existingCard).CurrentValues.SetValues(card);
+                // 3. *** ПРОВЕРКА ВЛАДЕНИЯ ***
+                if (existingCard.MentorId != currentUserId)
+                {
+                    _logger.LogWarning("User {UserId} attempted to update consultant card {CardId} owned by {OwnerId}. Access denied.", currentUserId, cardId, existingCard.MentorId);
+                    // Бросаем исключение, которое контроллер может поймать и вернуть 403 Forbidden
+                    throw new UnauthorizedAccessException("User is not authorized to modify this consultant card.");
+                }
+
+                // 4. Применить изменения (обновляем только разрешенные поля)
+                existingCard.Title = cardUpdateData.Title;
+                existingCard.Description = cardUpdateData.Description;
+                existingCard.PricePerHours = cardUpdateData.PricePerHours;
+                existingCard.Experience = cardUpdateData.Experience;
+                // НЕ обновляем existingCard.Id или existingCard.MentorId здесь
+
+                // 5. Сохранить изменения
                 await _context.SaveChangesAsync();
-                return existingCard;
+                _logger.LogInformation("Successfully updated consultant card {CardId} by User {UserId}", cardId, currentUserId);
+
+                return existingCard; // Возвращаем обновленную сущность
+            }
+            catch (UnauthorizedAccessException) // Явно перехватываем и перебрасываем для ясности
+            {
+                throw;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Concurrency conflict occurred while updating consultant card {CardId} by User {UserId}.", cardId, currentUserId);
+                throw new Exception("Failed to update card due to a concurrency conflict. Please try again.", ex);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error updating consultant card {CardId} by User {UserId}", cardId, currentUserId);
+                throw new ApplicationException("Error saving card changes to the database.", ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating consultant card with ID {Id}", card.Id);
-                throw new ApplicationException($"Error updating consultant card with ID {card.Id}", ex);
+                _logger.LogError(ex, "Unexpected error updating consultant card {CardId} by User {UserId}", cardId, currentUserId);
+                // Не бросаем ApplicationException, чтобы не скрыть UnauthorizedAccessException
+                throw new Exception("An unexpected error occurred while updating the consultant card.", ex);
             }
         }
 
-        public async Task<string> DeleteConsultantCardAsync(MentorCard card)
+        public async Task<bool> DeleteConsultantCardAsync(Guid cardId, Guid currentUserId)
         {
-            if (card == null)
-            {
-                throw new ArgumentNullException(nameof(card));
-            }
+            // Принимаем cardId для поиска, currentUserId для проверки
+            _logger.LogInformation("Attempting to delete consultant card {CardId} by User {UserId}", cardId, currentUserId);
 
             try
             {
-                var existingCard = await _context.MentorCards.FindAsync(card.Id);
+                // 1. Найти существующую карточку
+                var existingCard = await _context.MentorCards.FindAsync(cardId);
+
+                // 2. Проверить, найдена ли карточка
                 if (existingCard == null)
                 {
-                    throw new KeyNotFoundException($"Consultant card with ID {card.Id} not found");
+                    _logger.LogWarning("Attempted to delete non-existent consultant card with ID {CardId}", cardId);
+                    // Можно бросить KeyNotFoundException или просто вернуть false
+                    return false; // Не найдена, удалять нечего
+                    // throw new KeyNotFoundException($"Consultant card with ID {cardId} not found.");
                 }
 
+                // 3. *** ПРОВЕРКА ВЛАДЕНИЯ ***
+                if (existingCard.MentorId != currentUserId)
+                {
+                    _logger.LogWarning("User {UserId} attempted to delete consultant card {CardId} owned by {OwnerId}. Access denied.", currentUserId, cardId, existingCard.MentorId);
+                    // Бросаем исключение
+                    throw new UnauthorizedAccessException("User is not authorized to delete this consultant card.");
+                }
+
+                // 4. Удалить карточку
                 _context.MentorCards.Remove(existingCard);
+
+                // 5. Сохранить изменения
                 await _context.SaveChangesAsync();
-                return "Consultant card deleted successfully";
+                _logger.LogInformation("Successfully deleted consultant card {CardId} by User {UserId}", cardId, currentUserId);
+
+                return true; // Успешно удалено
+            }
+            catch (UnauthorizedAccessException) // Явно перехватываем и перебрасываем
+            {
+                throw;
+            }
+            catch (DbUpdateException ex) // Ловим ошибки БД (например, если есть связанные сущности с Restrict)
+            {
+                _logger.LogError(ex, "Database error deleting consultant card {CardId} by User {UserId}", cardId, currentUserId);
+                // Возможно, стоит вернуть false или бросить специфическое исключение
+                throw new ApplicationException("Error deleting the consultant card from the database.", ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting consultant card with ID {Id}", card.Id);
-                throw new ApplicationException($"Error deleting consultant card with ID {card.Id}", ex);
+                _logger.LogError(ex, "Unexpected error deleting consultant card {CardId} by User {UserId}", cardId, currentUserId);
+                // Не бросаем ApplicationException, чтобы не скрыть UnauthorizedAccessException
+                throw new Exception("An unexpected error occurred while deleting the consultant card.", ex);
             }
         }
     }
