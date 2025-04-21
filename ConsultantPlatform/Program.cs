@@ -1,6 +1,7 @@
 ﻿using ConsultantPlatform.Models.Entity;
 using ConsultantPlatform.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -11,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Добавление контроллеров
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSingleton<PasswordHasher<User>>();
 
 // 🔹 Добавляем поддержку Swagger с авторизацией
 builder.Services.AddSwaggerGen(options =>

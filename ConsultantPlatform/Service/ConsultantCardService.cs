@@ -199,5 +199,29 @@ namespace ConsultantPlatform.Service
                 throw new Exception("An unexpected error occurred while deleting the consultant card.", ex);
             }
         }
+
+        public async Task<List<MentorCard>> GetMentorCardsByUserIdAsync(Guid mentorId)
+        {
+            _logger.LogInformation("Attempting to retrieve mentor cards for User ID {MentorId}", mentorId);
+            try
+            {
+                // Выбираем карточки, где MentorId совпадает с переданным ID
+                var cards = await _context.MentorCards
+                                        .Where(mc => mc.MentorId == mentorId)
+                                        // Опционально: Подгружаем связанные данные, если они нужны для DTO
+                                        // .Include(mc => mc.MentorCardsCategories)
+                                        // .ThenInclude(mcc => mcc.Category)
+                                        .ToListAsync();
+
+                _logger.LogInformation("Found {CardCount} mentor cards for User ID {MentorId}", cards.Count, mentorId);
+                return cards;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving mentor cards for User ID {MentorId}", mentorId);
+                // Бросаем исключение, чтобы контроллер мог вернуть 500
+                throw new ApplicationException($"An error occurred while retrieving cards for mentor {mentorId}", ex);
+            }
+        }
     }
 }
