@@ -15,7 +15,7 @@ namespace ConsultantPlatform.Models.DTO
 
         public decimal PricePerHours { get; set; }
 
-        public int? Experience { get; set; }
+        public List<Experience> Experience { get; set; }
 
     }
 }
