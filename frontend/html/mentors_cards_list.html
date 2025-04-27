@@ -7,69 +7,72 @@
     <link rel="icon" href="../favicon.ico" sizes="32x32">
     <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="../images/apple-touch-icon.png">
-    <link rel="stylesheet" href="../styles/mentors_cards_list_styles.css">
     <link rel="stylesheet" href="../styles/normalization_fonts_styles.css">
+    <link rel="stylesheet" href="../styles/header_footer_styles.css">
+    <link rel="stylesheet" href="../styles/mentors_cards_list_styles.css">
 </head>
 <body>
     <header class="header">
         <div class="header-slogan">
             Прямо к офферу вместе с нами
         </div>
-        <div class="header-body">
-            <div class="header-logo">
-                <img class="header-logo-image"
-                    src="../icons/logo.svg" 
-                    alt="Лого"
-                    width="41" height="37" />
-                <div class="header-logo-name">MentorsConnect</div>
-            </div>
-            <div class="header-menu-user-wrapper">
-                <nav class="header-menu">
-                    <ul class="header-menu-list">
-                        <li class="header-menu-item">
-                            <a class="header-menu-link" href="/">
-                                <img class="header-menu-icon"
-                                    src="../icons/header_menu/1.svg" 
-                                    alt=""
-                                    width="39" height="39" />
-                                Консультанты
-                            </a> 
-                        </li>
-                        <li class="header-menu-item">
-                            <a class="header-menu-link" href="/">
-                                <img class="header-menu-icon"
-                                    src="../icons/header_menu/2.svg" 
-                                    alt=""
-                                    width="39" height="39" />
-                                Мои чаты
-                            </a> 
-                        </li>
-                        <li class="header-menu-item">
-                            <a class="header-menu-link" href="/">
-                                <img class="header-menu-icon"
-                                    src="../icons/header_menu/3.svg" 
-                                    alt=""
-                                    width="39" height="39" />
-                                Профиль
-                            </a> 
-                        </li>
-                        <li class="header-menu-item">
-                            <a class="header-menu-link" href="/">
-                                <img class="header-menu-icon"
-                                    src="../icons/header_menu/4.svg" 
-                                    alt=""
-                                    width="39" height="39" />
-                                Выйти
-                            </a> 
-                        </li>
-                    </ul>
-                </nav>
-                <div class="header-user">
-                    <img class="header-user-avatar" 
-                        src="../icons/default_user_avatar.svg" 
-                        alt="Аватар пользователя"
-                        width="41" height="41" />
-                    <div class="user-names">Фамилия Имя</div>
+        <div class="header-container">
+            <div class="header-body">
+                <div class="header-logo">
+                    <img class="header-logo-image"
+                        src="../icons/logo.svg" 
+                        alt="Лого"
+                        width="41" height="37" />
+                    <div class="header-logo-name">MentorsConnect</div>
+                </div>
+                <div class="header-menu-user-wrapper">
+                    <nav class="header-menu">
+                        <ul class="header-menu-list">
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./mentors_cards_list.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/1.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Консультанты
+                                </a> 
+                            </li>
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./chats.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/2.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Мои чаты
+                                </a> 
+                            </li>
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./user_profile.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/3.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Профиль
+                                </a> 
+                            </li>
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./login.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/4.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Выйти
+                                </a> 
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class="header-user">
+                        <img class="header-user-avatar" 
+                            src="../images/default_user_photo.jpg" 
+                            alt="Аватар пользователя"
+                            width="41" height="41" />
+                        <div class="user-names">Фамилия Имя</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -115,7 +118,7 @@
 
                         <div class="min-max-input-wrapper">
                             <label for="min-price" class="visually-hidden">Минимальная цена консультации</label>
-                            <input id="min-price" type="number" class="min-price-input input filter-form-input price-input" value="500" />
+                            <input id="min-price" type="number" class="min-price-input input filter-form-input price-input" value="0" />
                 
                             <label for="max-price" class="visually-hidden">Максимальная цена консультации</label>
                             <input id="max-price" type="number" class="max-price-input input filter-form-input price-input" value="100000" />
@@ -124,8 +127,8 @@
                         <div class="multi-range-input-wrapper">
                             <div class="range-input-track"></div>
                             <div class="range-input-progress price-progress"></div>
-                            <input type="range" class="price-range range-input min-price-range" min="500" max="100000" value="500" step="500">
-                            <input type="range" class="price-range range-input max-price-range" min="500" max="100000" value="100000" step="500">
+                            <input type="range" class="price-range range-input min-price-range" min="0" max="100000" value="0" step="500">
+                            <input type="range" class="price-range range-input max-price-range" min="0" max="100000" value="100000" step="500">
                         </div>
                     </div>
 
@@ -173,7 +176,7 @@
                 <article class="mentor-card">
                         <div class="card-owner">
                             <img class="card-user-avatar" 
-                                src="../icons/default_user_avatar.svg" 
+                                src="../images/default_user_photo.jpg" 
                                 alt="Аватар консультанта"
                                 width="76" height="76"
                             />
@@ -192,7 +195,7 @@
                     
                     <div class="card-footer">
                         <div class="card-price">6000 руб.</div>
-                        <a class="show-full-card-button" href="/">
+                        <a class="show-full-card-button" href="./mentor_card.html">
                             Подробнее
                         </a>
                     </div>
@@ -200,7 +203,7 @@
                 <article class="mentor-card">
                     <div class="card-owner">
                         <img class="card-user-avatar" 
-                            src="../icons/default_user_avatar.svg" 
+                            src="../images/default_user_photo.jpg" 
                             alt="Аватар консультанта"
                             width="76" height="76"
                         />
@@ -217,45 +220,45 @@
                         Расскажу как войти в ИТ даже без знаний разработки и быстро расти в крупных ИТ корпорациях на основании своего опыта: в Тинькофф за 5 лет прошел путь от системного аналитика до руководителя 3 команд разработки (50+ сотрудников).
                     </div>
                 
-                <div class="card-footer">
-                    <div class="card-price">6000 руб.</div>
-                    <a class="show-full-card-button" href="/">
-                        Подробнее
-                    </a>
-                </div>
-            </article>
-            <article class="mentor-card">
-                <div class="card-owner">
-                    <img class="card-user-avatar" 
-                        src="../icons/default_user_avatar.svg" 
-                        alt="Аватар консультанта"
-                        width="76" height="76"
-                    />
-                    <div class="user-names">Имя Фамилия</div>
-                </div>
+                    <div class="card-footer">
+                        <div class="card-price">6000 руб.</div>
+                        <a class="show-full-card-button" href="./mentor_card.html">
+                            Подробнее
+                        </a>
+                    </div>
+                </article>
+                <article class="mentor-card">
+                    <div class="card-owner">
+                        <img class="card-user-avatar" 
+                            src="../images/default_user_photo.jpg" 
+                            alt="Аватар консультанта"
+                            width="76" height="76"
+                        />
+                        <div class="user-names">Имя Фамилия</div>
+                    </div>
 
-                <h2 class="card-title">
-                    Product Owner в Revolut
-                </h2>
+                    <h2 class="card-title">
+                        Product Owner в Revolut
+                    </h2>
 
-                <div class="card-experience">Опыт работы: <span class="work-experience">8 лет</span></div>
+                    <div class="card-experience">Опыт работы: <span class="work-experience">8 лет</span></div>
 
-                <div class="card-short-description">
-                    Расскажу как войти в ИТ даже без знаний разработки и быстро расти в крупных ИТ корпорациях на основании своего опыта: в Тинькофф за 5 лет прошел путь от системного аналитика до руководителя 3 команд разработки (50+ сотрудников).
-                </div>
+                    <div class="card-short-description">
+                        Расскажу как войти в ИТ даже без знаний разработки и быстро расти в крупных ИТ корпорациях на основании своего опыта: в Тинькофф за 5 лет прошел путь от системного аналитика до руководителя 3 команд разработки (50+ сотрудников).
+                    </div>
             
-            <div class="card-footer">
-                <div class="card-price">6000 руб.</div>
-                <a class="show-full-card-button" href="/">
-                    Подробнее
-                </a>
-            </div>
-        </article>
+                    <div class="card-footer">
+                        <div class="card-price">6000 руб.</div>
+                        <a class="show-full-card-button" href="./mentor_card.html">
+                            Подробнее
+                        </a>
+                    </div>
+                </article>
             </section>
         </div>
     </main>
     <footer class="footer">
-        <div class="footer-wrapper container">
+        <div class="footer-wrapper footer-container">
             <div class="footer-column">
                 <h2 class="footer-column-title">ТЕЛЕФОН</h2>
                 <a href="tel:+79001234567" class="footer-column-body">+7 (900) 123-45-67</a>

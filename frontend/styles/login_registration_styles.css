@@ -22,19 +22,6 @@ a {
   text-decoration: none;
  }
 
-.visually-hidden {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  margin: -1px !important;
-  border: 0 !important;
-  padding: 0 !important;
-  white-space: nowrap !important;
-  clip-path: inset(100%) !important;
-  clip: rect(0 0 0 0) !important;
-  overflow: hidden !important;
-}
-
 /* Скрываем scrollbar для Chrome, Safari и Opera */
 .form-container::-webkit-scrollbar {
   display: none;
@@ -108,11 +95,17 @@ a {
   background-color: #c9c9c9;
 }
 
-.button:hover {
-  background-color: #ff8400;
+@media (hover: hover) {
+  .button:hover {
+    background-color: #ff8400;
+  }
 }
 
-
+@media (hover: none) {
+  .button:active {
+    background-color: #ff8400;
+  }
+}
 
 
 
