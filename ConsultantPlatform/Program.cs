@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Microsoft.AspNetCore.HttpOverrides; // Добавлена строка для ForwardedHeaders
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSingleton<PasswordHasher<User>>();
 
-// 🔹 Добавляем поддержку Swagger с авторизацией
+// Настройка Forwarded Headers для работы за прокси
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Если Nginx также передает заголовок X-Forwarded-Host, можно добавить и его:
+    // options.ForwardedHeaders |= ForwardedHeaders.XForwardedHost;
+
+    // Опционально: Очистить известные прокси/сети, если вы уверены, что только Nginx является прокси
+    // options.KnownNetworks.Clear();
+    // options.KnownProxies.Clear();
+});
+
+
+// Добавляем поддержку Swagger с авторизацией
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Consultant Platform API", Version = "v1" });
@@ -47,13 +62,19 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// 🔹 Добавляем зависимости
+// Добавляем зависимости
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ConsultantCardService>();
 
-// 🔹 Настройки JWT
+// Настройки JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+var keyString = jwtSettings["Key"];
+if (string.IsNullOrEmpty(keyString))
+{
+    throw new InvalidOperationException("JWT Key is not configured.");
+}
+var key = Encoding.UTF8.GetBytes(keyString);
+
 
 builder.Services.AddCors(options =>
 {
@@ -63,7 +84,7 @@ builder.Services.AddCors(options =>
                         .AllowAnyHeader());
 });
 
-// 🔹 Подключаем БД
+// Подключаем БД
 builder.Services.AddDbContext<MentiContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -74,7 +95,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false;
+    options.RequireHttpsMetadata = false; // Оставляем false, т.к. Nginx может обрабатывать SSL
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -86,29 +107,58 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         ClockSkew = TimeSpan.Zero
     };
+    // Опционально: обработка событий для диагностики проблем с JWT
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine("Authentication failed: " + context.Exception.Message);
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine("Token validated for user: " + context.Principal.Identity.Name);
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Включаем CORS перед UseAuthorization()
+// --- Включаем UseForwardedHeaders СРАЗУ после app.Build() ---
+// Это КРАЙНЕ ВАЖНО для корректной работы за прокси, должно быть ПЕРЕД большинством middleware
+app.UseForwardedHeaders();
+
+
+// Включаем CORS (порядок после UseForwardedHeaders, но перед UseAuthentication/UseAuthorization)
 app.UseCors("AllowAll");
 
-// Включаем Swagger
-if (app.Environment.IsDevelopment())
+// --- Включаем Swagger и SwaggerUI (вне условия Development) ---
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    // Путь к json файлу спецификации относительно корня
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ConsultantPlatform API v1");
 
-app.UseHttpsRedirection();
+    // Если вы хотите, чтобы Swagger UI был доступен прямо по адресу сервера (без /swagger в конце)
+    // c.RoutePrefix = string.Empty; // В этом случае Nginx location для '/' должен проксировать на бэкенд
+});
 
-// Включаем аутентификацию и авторизацию
+
+// --- Закомментирована строка HttpsRedirection ---
+// Закомментируйте эту строку, если Nginx проксирует HTTP на бэкенд
+// Она может вызывать некорректное поведение при работе за прокси
+// app.UseHttpsRedirection();
+
+
+// Включаем аутентификацию и авторизацию (порядок важен: UseAuthentication перед UseAuthorization)
 app.UseAuthentication();
 app.UseAuthorization();
+
+// app.UseRouting(); // В последних версиях MapControllers добавляет UseRouting автоматически
 
 app.MapControllers();
 
 app.Run();
-//git push --set-upstream origin master
