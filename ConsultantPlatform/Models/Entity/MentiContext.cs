@@ -89,7 +89,6 @@ public partial class MentiContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("ID");
-            entity.Property(e => e.ExperienceId).HasColumnName("ExperienceID");
             entity.Property(e => e.MentorId).HasColumnName("MentorID");
             entity.Property(e => e.PricePerHours).HasColumnType("money");
             entity.Property(e => e.Title).HasMaxLength(200);

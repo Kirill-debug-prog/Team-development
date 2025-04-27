@@ -15,8 +15,6 @@ public partial class MentorCard
 
     public decimal PricePerHours { get; set; }
 
-    public Guid? ExperienceId { get; set; }
-
     public virtual ICollection<Experience> Experiences { get; set; } = new List<Experience>();
 
     public virtual User Mentor { get; set; } = null!;
