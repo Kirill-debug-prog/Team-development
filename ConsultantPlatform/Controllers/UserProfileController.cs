@@ -242,7 +242,15 @@ namespace ConsultantPlatform.Controllers
                     Description = mc.Description,
                     MentorId = mc.MentorId,
                     PricePerHours = mc.PricePerHours,
-                    Experience = mc.Experience
+                    // Маппинг коллекции Experiences
+                    Experiences = mc.Experiences.Select(exp => new ExperienceDTO
+                    {
+                        Id = exp.Id,
+                        CompanyName = exp.CompanyName,
+                        Position = exp.Position,
+                        DurationYears = exp.DurationYears,
+                        Description = exp.Description
+                    }).ToList()
                 });
                 _logger.LogInformation("Успешно получено {Count} карточек ментора для пользователя {UserId}.", cardDtos.Count(), userId);
                 // 4. Вернуть успешный результат со списком DTO
