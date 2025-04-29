@@ -1,0 +1,269 @@
+:root {
+  --color-dark: #000000;
+  --color-light: #F9F9F9;
+  --color-light-grey: #F5F5F5;
+  --color-dark-grey: #8C8989;
+}
+
+main {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 20px;
+  color: var(--color-dark);
+  background-color: var(--color-light);
+}
+
+.card-header {
+  color:var( --color-light);
+  font-size: 24px;
+  background-image: linear-gradient(#7dc58a 21.5%, #1e4a34 75%);
+}
+
+.container {
+  margin-inline: auto;
+  max-width: 2000px;
+}
+
+.card-header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40px 100px;
+  column-gap: 50px;
+}
+
+.mentor-info {
+  display: flex;
+  align-items: center;
+  column-gap: 30px;
+}
+
+.mentor-avatar {
+  width: 256px;
+  aspect-ratio: 1;
+  clip-path: circle(50%);
+  text-align: center;
+  background-color: var(--color-dark-grey);
+}
+
+.mentor-name {
+  font-weight: 700;
+  font-size: 32px;
+}
+
+.consultation-info {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  row-gap: 50px;
+}
+
+.price-accent {
+  font-weight: 700;
+  text-shadow: 0 4px 4px rgba(0, 0, 0, 0.3), 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.message-button {
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 10px 30px;
+  background: #8338c4;
+  background-image: linear-gradient(90deg, #7f469d 0%, #8338c4 50%, #8a35da 75%, #af41ee 87.5%, #e65ffb 100%);
+  transition-duration: 0.2s;
+}
+
+@media (hover: hover) {
+  .message-button:hover {
+    background-image: linear-gradient(-90deg, #7f469d 0%, #8338c4 50%, #8a35da 75%, #af41ee 87.5%, #e65ffb 100%);
+  }
+}
+
+@media (hover: none) {
+  .message-button:active {
+    background-image: linear-gradient(-90deg, #7f469d 0%, #8338c4 50%, #8a35da 75%, #af41ee 87.5%, #e65ffb 100%);
+  }
+}
+
+.card-body {
+  display: grid;
+  column-gap: 20px;
+  grid-template-columns: 2fr 1fr;
+  padding: 66px 24px;
+  max-width: 2000px;
+  justify-self: center;
+}
+
+.card-main-info,
+.card-experience {
+  background-color: var(--color-light-grey);
+  border-radius: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.card-main-info {
+  padding: 20px 30px;
+}
+
+.card-main-info > :not(:last-child) {
+  margin-bottom: 40px;
+}
+
+.card-title {
+  font-size: 32px;
+  text-align: center;
+}
+
+.card-activity-areas {
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+  color: var(--color-dark-grey);
+}
+
+.activity-areas-list {
+  display: flex;
+  column-gap: 10px;
+}
+
+.activity-area {
+  font-size: 14px;
+  border: 1px solid var(--color-dark-grey);
+  padding: 13px;
+  border-radius: 5px;
+  color: var(--color-dark-grey);
+}
+
+.card-experience {
+  padding: 20px 20px 30px;
+  height: fit-content;
+}
+
+.card-experience > :not(:last-child) {
+  margin-bottom: 30px;
+}
+
+.experience-title {
+  font-weight: 500;
+  font-size: 32px;
+  text-align: center;
+}
+
+.experience-list > :not(:last-child) {
+  margin-bottom: 16px;
+}
+
+.experience-position-place {
+  font-weight: 500;
+}
+
+.experience-time {
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--color-dark-grey);
+}
+
+
+
+@media(max-width: 1300px) {
+  .card-header-wrapper {
+    padding-inline: 30px;
+  }
+
+  .mentor-avatar {
+    width: 200px;
+    aspect-ratio: 1;
+  }
+}
+
+@media(max-width: 1000px) {
+  main {
+    font-size: 18px;
+  }
+  
+  .card-header {
+    font-size: 20px;
+  }
+  
+  .card-header-wrapper {
+    padding: 30px 15px;
+  }
+  
+  .mentor-info {
+    column-gap: 10px;
+  }
+
+  .mentor-avatar {
+    width: 150px;
+    aspect-ratio: 1;
+  }
+
+  .mentor-name {
+    font-size: 24px;
+  }
+
+  .card-body {
+    padding-block: 40px;
+  }
+}
+
+@media(max-width: 670px) {
+  main {
+    font-size: 14px;
+  }
+  
+  .card-header {
+    font-size: 16px;
+  }
+  
+  .card-header-wrapper {
+    flex-direction: column;
+    align-items: normal;
+    row-gap: 15px;
+  }
+
+  .mentor-avatar {
+    width: 100px;
+    aspect-ratio: 1;
+  }
+
+  .mentor-name {
+    font-size: 20px;
+  }
+
+  .consultation-info {
+    flex-direction: row;
+    justify-content: space-between;
+    column-gap: 20px;
+  }
+
+  .message-button {
+    padding: 10px; 
+    text-align: center;
+  }
+
+  .card-body {
+    grid-template-columns: 1fr;
+    padding: 5px;
+    padding-bottom: 30px;
+    row-gap: 30px;
+  }
+
+  .card-main-info > :not(:last-child) {
+    margin-bottom: 20px;
+  }
+
+  .card-title,
+  .experience-title {
+    font-size: 25px;
+  }
+
+  .activity-area {
+    padding: 5;
+    line-height: 1;
+  }
+
+  .experience-time {
+    font-size: 14px;
+  }
+}

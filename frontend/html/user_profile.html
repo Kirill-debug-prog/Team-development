@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MentorsConnect</title>
+    <link rel="icon" href="../favicon.ico" sizes="32x32">
+    <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png">
+    <link rel="stylesheet" href="../styles/normalization_fonts_styles.css">
+    <link rel="stylesheet" href="../styles/header_footer_styles.css">
+    <link rel="stylesheet" href="../styles/user_profile_styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-slogan">
+            Прямо к офферу вместе с нами
+        </div>
+        <div class="header-container">
+            <div class="header-body">
+                <div class="header-logo">
+                    <img class="header-logo-image"
+                        src="../icons/logo.svg" 
+                        alt="Лого"
+                        width="41" height="37" />
+                    <div class="header-logo-name">MentorsConnect</div>
+                </div>
+                <div class="header-menu-user-wrapper">
+                    <nav class="header-menu">
+                        <ul class="header-menu-list">
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./mentors_cards_list.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/1.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Консультанты
+                                </a> 
+                            </li>
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./chats.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/2.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Мои чаты
+                                </a> 
+                            </li>
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./user_profile.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/3.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Профиль
+                                </a> 
+                            </li>
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./login.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/4.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Выйти
+                                </a> 
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class="header-user">
+                        <img class="header-user-avatar" 
+                            src="../images/default_user_photo.jpg" 
+                            alt="Аватар пользователя"
+                            width="41" height="41" />
+                        <div class="user-names">Фамилия Имя</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h1 class="visually-hidden">Просмотр профиля</h1>
+        <header class="profile-header">
+            <div class="container">
+                <img class="user-avatar"
+                    src="../images/default_user_photo.jpg"
+                    alt="Фотография профиля"/>
+                <div class="user-name">Петров Александр Сергеевич</div>
+                <div class="profile-actions-wrapper">
+                    <button class="button" type="button">Редактировать</button>
+                    <button class="button" type="button">Изменить пароль</button>
+                </div>
+            </div>
+        </header>
+        <div class="profile-body">
+            <h2 class="profile-body-title">Мои анкеты</h2>
+            <a href="./create_card.html" class="button create-card-button">Создать анкету</a>
+            <section class="card-list">
+                <article class="mentor-card">
+                    <div class="card-owner">
+                        <img class="card-user-avatar" 
+                            src="../images/default_user_photo.jpg" 
+                            alt="Аватар консультанта"
+                            width="76" height="76"
+                        />
+                        <div class="card-user-name">Петров Александр</div>
+                    </div>
+
+                    <h3 class="card-title">
+                        Product Owner в Revolut
+                    </h3>
+
+                    <div class="card-experience">Опыт работы: <span class="work-experience">8 лет</span></div>
+
+                    <div class="card-short-description">
+                        Расскажу как войти в ИТ даже без знаний разработки и быстро расти в крупных ИТ корпорациях на основании своего опыта: в Тинькофф за 5 лет прошел путь от системного аналитика до руководителя 3 команд разработки (50+ сотрудников).
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="card-price">6000 руб.</div>
+                        <a class="show-full-card-button" href="./mentor_card.html">
+                            Подробнее...
+                        </a>
+                    </div>
+
+                    <div class="card-actions-wrapper">
+                        <a href="/" class="transparent-button">Редактировать</a>
+                        <button class="transparent-button" type="button" onclick="remove(this)">Удалить</button>
+                    </div>
+                </article>
+
+                <article class="mentor-card">
+                    <div class="card-owner">
+                        <img class="card-user-avatar" 
+                            src="../images/default_user_photo.jpg" 
+                            alt="Аватар консультанта"
+                            width="76" height="76"
+                        />
+                        <div class="card-user-name">Петров Александр</div>
+                    </div>
+
+                    <h3 class="card-title">
+                        Product Owner в Revolut
+                    </h3>
+
+                    <div class="card-experience">Опыт работы: <span class="work-experience">8 лет</span></div>
+
+                    <div class="card-short-description">
+                        Расскажу как войти в ИТ даже без знаний разработки и быстро расти в крупных ИТ корпорациях на основании своего опыта: в Тинькофф за 5 лет прошел путь от системного аналитика до руководителя 3 команд разработки (50+ сотрудников).
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="card-price">6000 руб.</div>
+                        <a class="show-full-card-button" href="./mentor_card.html">
+                            Подробнее...
+                        </a>
+                    </div>
+
+                    <div class="card-actions-wrapper">
+                        <a href="/" class="transparent-button">Редактировать</a>
+                        <button class="transparent-button" type="button" onclick="remove(this)">Удалить</button>
+                    </div>
+                </article>
+
+                <article class="mentor-card">
+                    <div class="card-owner">
+                        <img class="card-user-avatar" 
+                            src="../images/default_user_photo.jpg" 
+                            alt="Аватар консультанта"
+                            width="76" height="76"
+                        />
+                        <div class="card-user-name">Петров Александр</div>
+                    </div>
+
+                    <h3 class="card-title">
+                        Product Owner в Revolut
+                    </h3>
+
+                    <div class="card-experience">Опыт работы: <span class="work-experience">8 лет</span></div>
+
+                    <div class="card-short-description">
+                        Расскажу как войти в ИТ даже без знаний разработки и быстро расти в крупных ИТ корпорациях на основании своего опыта: в Тинькофф за 5 лет прошел путь от системного аналитика до руководителя 3 команд разработки (50+ сотрудников).
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="card-price">6000 руб.</div>
+                        <a class="show-full-card-button" href="./mentor_card.html">
+                            Подробнее...
+                        </a>
+                    </div>
+
+                    <div class="card-actions-wrapper">
+                        <a href="/" class="transparent-button">Редактировать</a>
+                        <button class="transparent-button" type="button" onclick="remove(this)">Удалить</button>
+                    </div>
+                </article>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-wrapper footer-container">
+            <div class="footer-column">
+                <h2 class="footer-column-title">ТЕЛЕФОН</h2>
+                <a href="tel:+79001234567" class="footer-column-body">+7 (900) 123-45-67</a>
+            </div>
+
+            <div class="footer-column">
+                <h2 class="footer-column-title">АДРЕС</h2>
+                <address class="footer-column-body">г. Томск, ул. Примерная, д. 10</address>
+            </div>
+
+            <div class="footer-column">
+                <h2 class="footer-column-title">EMAIL</h2>
+                <a href="mailto:info@example.com" class="footer-column-body">info@example.com</a>
+            </div>
+
+            <div class="footer-column">
+                <h2 class="footer-column-title sol1als-title">КОНТАКТЫ</h2>
+                <div class="footer-soc1als">
+                    <ul class="footer-soc1als-list">
+                        <li class="footer-soc1als-item">
+                            <a href="https://web.telegram.org/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/telegram.png" alt="Иконка Teledram" width="50" height="50" />
+                            </a>
+                        </li>
+
+                        <li class="footer-soc1als-item">
+                            <a href="https://www.facebook.com/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/facebook.png" alt="Иконка Facebook" width="50" height="50" />
+                            </a>
+                        </li>
+
+                        <li class="footer-soc1als-item">
+                            <a href="https://vk.com/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/vk.png" alt="Иконка ВК" width="50" height="50" />
+                            </a>
+                        </li>
+
+                        <li class="footer-soc1als-item">
+                            <a href="https://www.whatsapp.com/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/whatsapp.png" alt="Иконка WhatsApp" width="50" height="50" />
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/user_profile_script.js"></script>
+</body>
+</html>
