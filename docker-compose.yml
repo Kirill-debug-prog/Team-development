@@ -1,46 +1,59 @@
 version: '3.8'
 
 services:
-  # --- Сервис Базы Данных PostgreSQL ---
+  # Сервис базы данных PostgreSQL
   db:
-    image: postgres:latest
+    image: postgres:latest # Используем официальный образ PostgreSQL
     restart: always
-    environment:
+    environment: # Переменные окружения для настройки БД (берутся из .env)
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - db_data:/var/lib/postgresql/data
-    # ports: # Опционально, если нужен доступ с хоста
-    #   - "${POSTGRES_PORT:-5432}:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - db_data:/var/lib/postgresql/data # Постоянное хранилище данных БД
+    # !!! Раскомментировали секцию dns !!!
+    dns:
+      - 8.8.8.8 # Используем DNS-сервер Google
+      - 8.8.4.4 # Резервный DNS-сервер Google
 
-  # --- Сервис Бэкенда ASP.NET ---
+  # Сервис бэкенда ASP.NET
   backend:
-    build: ./ConsultantPlatform # Указываем на вашу папку с бэкендом
+    build: ./ConsultantPlatform # Собираем образ из Dockerfile в папке ./backend
     restart: always
     environment:
+      # Строка подключения к БД из контейнера бэкенда.
+      # В качестве хоста используем имя сервиса БД - "db"
       ConnectionStrings:DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
-      # Другие переменные окружения для бэкенда, если есть
+      # Если вы добавляли эту строку для обхода проблемы и она не помогла,
+      # или если проблема была только в DNS, то можно ее удалить.
+      # ENV DOTNET_SYSTEM_NET_DISABLEIPV6=true
+      # Добавьте другие переменные окружения, если нужны для бэкенда
     expose:
-      - "80" # Бэкенд слушает на порту 80
+      - "80" # Бэкенд слушает на порту 80 внутри контейнера (см. Dockerfile бэкенда)
+              # Этот порт доступен другим контейнерам в сети Docker Compose, но не хосту напрямую
     depends_on:
-      db:
-        condition: service_healthy # Ждем, пока БД будет готова
+      - db # Указываем зависимость от БД, чтобы БД запускалась первой
+    # !!! Раскомментировали секцию dns !!!
+    dns:
+      - 8.8.8.8 # Используем DNS-сервер Google
+      - 8.8.4.4 # Резервный DNS-сервер Google
 
-  # --- Сервис Веб-сервера Nginx ---
+
+  # Сервис веб-сервера Nginx (отдает фронтенд и проксирует на бэкенд)
   nginx:
-    build: ./nginx # Указываем на папку с конфигом Nginx
+    build: ./nginx # Собираем образ из Dockerfile в папке ./nginx
     restart: always
     ports:
-      - "80:80" # Пробрасываем порт 80 с хоста
+      - "80:80" # Пробрасываем порт 80 с хоста на порт 80 контейнера Nginx
+                # Через этот порт вы будете заходить в браузере (http://localhost)
     depends_on:
-      - backend # Зависим от бэкенда
+      - backend # Зависимость от бэкенда, чтобы Nginx запускался после него
+    # !!! Раскомментировали секцию dns !!!
+    dns:
+      - 8.8.8.8 # Используем DNS-сервер Google
+      - 8.8.4.4 # Резервный DNS-сервер Google
 
-# --- Определение томов ---
+
+# Определение тома для постоянного хранения данных БД
 volumes:
   db_data:
