@@ -12,7 +12,7 @@ COPY . .
 
 # dotnet publish �������� build, ���� �� ������ --no-build.
 # ��������� ��������� � ����� /app/publish (�� ���� ����� build)
-RUN dotnet publish "ConsultantPlatform.csproj" -c Release -o /app/publish
+RUN dotnet publish "ConsultantPlatform.csproj" -c Release -o /app/publish --no-restore
 
 
 # ���������� Runtime ����� ��� �������
