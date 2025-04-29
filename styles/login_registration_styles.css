@@ -75,9 +75,35 @@ a {
   padding-inline: 30px;
 }
 
+.password-wrapper .form-input {
+  padding-right: 45px;
+}
+
 .form-input::placeholder {
   color: var(--color-dark);
   text-align: center;
+}
+
+.password-wrapper .form-input::placeholder {
+  padding-left: 15px;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.show-hide-password {
+  position: absolute;
+  right: 5px;
+  top: 0;
+  width: 30px;
+  height: 100%;
+  margin-right: 5px;
+  background: url('../icons/opened_eye.svg') center/70% no-repeat;
+}
+
+.to-hide {
+  background: url('../icons/closed_eye.svg') center/70% no-repeat;
 }
 
 .button {
@@ -111,7 +137,7 @@ a {
 
 @media (max-width: 670px) {
   .form-wrapper {
-    padding-inline: 40px;
+    padding-inline: 20px;
   }
 
   body {

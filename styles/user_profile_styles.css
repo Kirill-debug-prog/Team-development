@@ -5,7 +5,8 @@
   --color-dark-grey: #A8A8A8;
 }
   
-main {
+main,
+dialog {
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   font-size: 20px;
@@ -53,8 +54,8 @@ main {
 .button {
   color: var(--color-light);
   font-weight: 700;
-  background-image: linear-gradient(90deg, #7f469d 0%, #8338c4 26.4%, #8a35da 49.9%, #af41ee 69.9%, #e65ffb 100%);
-  border: none;
+  background-color: rgba(89, 129, 106, 0.8);
+  border: 1px solid rgba(151, 176, 162, 0.9);
   border-radius: 10px;
   width: 196px;
   height: 44px;
@@ -64,13 +65,13 @@ main {
 
 @media (hover: hover) {
   .button:hover {
-    background-image: linear-gradient(-90deg, #7f469d 0%, #8338c4 50%, #8a35da 75%, #af41ee 87.5%, #e65ffb 100%);
+    background-color: rgba(146, 181, 161, 0.8);
   }
 }
 
 @media (hover: none) {
   .button:active {
-    background-image: linear-gradient(-90deg, #7f469d 0%, #8338c4 50%, #8a35da 75%, #af41ee 87.5%, #e65ffb 100%);
+    background-color: rgba(146, 181, 161, 0.8);
   }
 }
 
@@ -203,8 +204,217 @@ main {
   }
 }
 
+dialog {
+  border-radius: 20px;
+  border: none;
+  padding: 25px 45px;
+  background-image: linear-gradient(180deg, #ceddd6 0%, #b9babf 50%, #f1bfa4 100%);
+  outline: none;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.dialog-title {
+  font-weight: 700;
+  text-align: center;
+}
+
+.avatar {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.image-before::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: 77px;
+  aspect-ratio: 1;
+  background: url('../icons/camera.svg') center/100% no-repeat;
+  filter: drop-shadow(4px 4px 10px rgb(0, 0, 0));
+}
+
+.dialog-user-avatar {
+  border-radius: 50%;
+  height: 149px;
+  aspect-ratio: 1;
+  border: 5px solid var(--color-light);
+}
+
+.avatar-actions {
+  position: absolute;
+  top: 105%;
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+  font-weight: 400;
+  filter: drop-shadow(4px 4px 10px rgb(153, 153, 153));
+}
+
+.display-none {
+  display: none;
+}
+
+input#avatar {
+  display: none;
+}
+
+.avatar-actions-button {
+  border: none;
+  background-color: var(--color-light);
+  text-align: start;
+  padding: 8px 18px;
+  padding-left: 28px;
+}
+
+.change-avatar-button::before {
+  content: '';
+  width: 17px;
+  aspect-ratio: 1;
+  position: absolute;
+  translate: calc(-100% - 4px);
+  background: url('../icons/pencil.svg') 0 0/contain no-repeat;
+}
+
+.delete-avatar-button::before {
+  content: '';
+  width: 17px;
+  aspect-ratio: 1;
+  position: absolute;
+  translate: calc(-100% - 4px);
+  background: url('../icons/bin.svg') 0 0/contain no-repeat;
+}
+
+.avatar-actions :first-child {
+  border-radius: 15px 15px 0 0;
+}
+
+.avatar-actions :last-child {
+  border-radius: 0 0 15px 15px;
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.modify-user-info-window .dialog-form {
+  margin-block: 17px;
+}
+
+.dialog-label {
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 5px;
+}
+
+.modify-user-info-window .dialog-label:not(:first-child) {
+  margin-top: 15px;
+}
+
+.dialog-input {
+  border: 1px solid var(--color-dark);
+  border-radius: 30px;
+  outline: none;
+  padding-inline: 10px;
+  font-size: 16px;
+  font-weight: 400;
+  padding-block: 5px;
+  width: 315px;
+}
+
+.dialog-input[type="password"] {
+  padding-right: 35px;
+}
+
+.dialog-actions-wrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.dialog-button {
+  color: var(--color-light);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
+  width: 108px;
+  text-align: center;
+  background-image: linear-gradient(90deg, #01c7fc 0%, #00a1d8 50%, #0056d6 100%);
+  outline: none;
+}
+
+.modify-password-window .dialog-form {
+  margin-block: 27px 140px;
+}
+
+.password-input-wrapper {
+  display: flex;
+  position: relative;
+}
+
+.password-input-wrapper:not(:last-child) {
+  margin-bottom: 20px;
+}
+
+.show-hide-password {
+  position: absolute;
+  right: 0;
+  width: 30px;
+  height: 100%;
+  margin-right: 5px;
+  background: url('../icons/opened_eye.svg') center/70% no-repeat;
+}
+
+.to-hide {
+  background: url('../icons/closed_eye.svg') center/70% no-repeat;
+}
+
+.dialog-text {
+  font-weight: 400;
+  text-align: center;
+}
+
+.deleting-confirmation-window .dialog-actions-wrapper {
+  padding-inline: 20px;
+}
 
 
+
+
+
+
+
+
+@media (hover: hover) {
+  .dialog-button:hover {
+    background-image: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
+  }
+
+  .avatar-actions-button:hover {
+    background-color: rgb(215, 215, 215);
+  }
+}
+
+@media (hover: none) {
+  .dialog-button:active {
+    background-image: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
+  }
+
+  .avatar-actions-button:active {
+    background-color: rgb(215, 215, 215);
+  }
+}
 
 
 @media (max-width: 1300px) {
@@ -322,5 +532,22 @@ main {
     position: static;
     flex-direction: row;
     justify-content: space-between;
+  }
+
+  .modify-user-info-window,
+  .modify-password-window {
+    padding-inline: 20px;
+  }
+
+  .dialog-input {
+    width: 100%;
+  }
+  
+  .deleting-confirmation-window {
+    padding-inline: 15px;
+  }
+
+  .deleting-confirmation-window .dialog-actions-wrapper {
+    padding-inline: 0;
   }
 }

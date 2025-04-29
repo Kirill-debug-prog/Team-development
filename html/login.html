@@ -18,8 +18,11 @@
                 <label class="visually-hidden" for="login">Email или номер телефона</label>
                 <input class="form-input" id="login" placeholder="Email/Телефон" type="text" name="user_login" required/>
  
-                <label class="visually-hidden" for="password">Пароль</label>
-                <input class="form-input" id="password" placeholder="Пароль" type="password" name="user_password" required/>
+                <div class="password-wrapper">
+                    <label class="visually-hidden" for="password">Пароль</label>
+                    <input class="form-input" id="password" placeholder="Пароль" type="password" name="user_password" required/>
+                    <div class="show-hide-password" onclick="showHidePassword(this)"></div>
+                </div>
 
                 <button class="button" type="submit">
                     Войти
@@ -28,5 +31,7 @@
             </form>
         </div>
     </main>
+
+    <script src="../js/login_script.js"></script>
 </body>
 </html>

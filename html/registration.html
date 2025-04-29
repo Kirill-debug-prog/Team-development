@@ -22,18 +22,24 @@
                 <label class="visually-hidden" for="name">Имя</label>
                 <input class="form-input" id="name" placeholder="Имя" type="text" name="user_name" required/>
 
-                <!-- required(?) -->
+                
                 <label class="visually-hidden" for="patronymic">Отчество</label>
                 <input class="form-input" id="patronymic" placeholder="Отчество" type="text" name="user_patronymic"/>
 
                 <label class="visually-hidden" for="login">Email или номер телефона</label>
                 <input class="form-input" id="login" placeholder="Email/Телефон" type="text" name="user_login" required/>
 
-                <label class="visually-hidden" for="password">Пароль</label>
-                <input class="form-input" id="password" placeholder="Пароль" type="password" name="user_password" required/>
+                <div class="password-wrapper">
+                    <label class="visually-hidden" for="password">Пароль</label>
+                    <input class="form-input" id="password" placeholder="Пароль" type="password" name="user_password" required/>
+                    <div class="show-hide-password" onclick="showHidePassword(this)"></div>
+                </div>
 
-                <label class="visually-hidden" for="password_repeated">Повторите пароль</label>
-                <input class="form-input" id="password_repeated" placeholder="Повторите пароль" type="password" name="user_password_repeated" required/>
+                <div class="password-wrapper">
+                    <label class="visually-hidden" for="password_repeated">Повторите пароль</label>
+                    <input class="form-input" id="password_repeated" placeholder="Повторите пароль" type="password" name="user_password_repeated" required/>
+                    <div class="show-hide-password" onclick="showHidePassword(this)"></div>
+                </div>
 
                 <button class="button" type="submit">
                     Зарегистрироваться
@@ -43,5 +49,6 @@
         </div>
     </main>
 
+    <script src="../js/registration_script.js"></script>
 </body>
 </html>
