@@ -9,14 +9,14 @@ COPY . .
 RUN dotnet build "ConsultantPlatform.csproj" -c Release -o /app/build --no-restore
 
 FROM build AS publish
-RUN dotnet publish "ConsultantPlatform.csproj" -c Release -o /app/publish --no-restore --no-build
+RUN dotnet publish "ConsultantPlatform.csproj" -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
 COPY --from=publish /app/publish .
 
-# !!! ИЗМЕНЕНО: Kestrel будет слушать на порту 80, чтобы соответствовать docker-compose.yaml и nginx.conf !!!
+# !!! пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: Kestrel пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 80, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ docker-compose.yaml пїЅ nginx.conf !!!
 ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
 
