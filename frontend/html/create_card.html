@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MentorsConnect</title>
+    <link rel="icon" href="../favicon.ico" sizes="32x32">
+    <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png">
+    <link rel="stylesheet" href="../styles/normalization_fonts_styles.css">
+    <link rel="stylesheet" href="../styles/header_footer_styles.css">
+    <link rel="stylesheet" href="../styles/create_card_styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-slogan">
+            Прямо к офферу вместе с нами
+        </div>
+        <div class="header-container">
+            <div class="header-body">
+                <div class="header-logo">
+                    <img class="header-logo-image"
+                        src="../icons/logo.svg" 
+                        alt="Лого"
+                        width="41" height="37" />
+                    <div class="header-logo-name">MentorsConnect</div>
+                </div>
+                <div class="header-menu-user-wrapper">
+                    <nav class="header-menu">
+                        <ul class="header-menu-list">
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./mentors_cards_list.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/1.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Консультанты
+                                </a> 
+                            </li>
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./chats.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/2.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Мои чаты
+                                </a> 
+                            </li>
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./user_profile.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/3.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Профиль
+                                </a> 
+                            </li>
+                            <li class="header-menu-item">
+                                <a class="header-menu-link" href="./login.html">
+                                    <img class="header-menu-icon"
+                                        src="../icons/header_menu/4.svg" 
+                                        alt=""
+                                        width="39" height="39" />
+                                    Выйти
+                                </a> 
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class="header-user">
+                        <img class="header-user-avatar" 
+                            src="../images/default_user_photo.jpg" 
+                            alt="Аватар пользователя"
+                            width="41" height="41" />
+                        <div class="user-names">Фамилия Имя</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="container">
+        <div class="survey">
+            <h1 class="survey-title">Создание анкеты консультанта</h1>
+            <form class="form" action="" method="post">
+                <div class="input-wrapper">
+                    <label class="label" for="specialization">Специализация / название</label>
+                    <input class="input" id="specialization" type="text" maxlength="200" 
+                    spellcheck="true" required/>       
+                </div>
+                
+                <div class="input-wrapper">
+                    <span class="label">Опыт работы</span>
+                    
+                    <div id="experience-list">
+                        <div class="experience-item">
+                            <div class="experience-title-button-wrapper">
+                                <span class="experience-item-title">Опыт работы №1</span>
+                                <button type="button" class="remove-experience-button" onclick="removeExperience(this)">×</button>
+                            </div>
+                            
+                            <label for="position-1" class="visually-hidden">Должность</label>
+                            <input id="position-1" class="input" type="text" placeholder="Должность">
+                            
+                            <label for="company-1" class="visually-hidden">Компания</label>
+                            <input id="company-1" class="input" type="text" placeholder="Компания">
+                            
+                            <label for="duration-1" class="visually-hidden">Срок работы</label>
+                            <input id="duration-1" class="input" type="text" placeholder="Срок работы (например, 2 года)">                                           
+                        </div>
+                    </div>
+
+                    <button type="button" class="add-experience-button" onclick="addExperience()">Добавить</button>   
+                </div>
+                
+                <div class="dropdown-container">
+                    <div class="dropdown" onclick="toggleDropdown()">Компетенции</div>
+                    <div class="dropdown-options" id="options">
+                        <label><input type="checkbox" value="it"> Информационные технологии</label>
+                        <label><input type="checkbox" value="finance"> Финансы</label>
+                        <label><input type="checkbox" value="marketing"> Маркетинг</label>
+                        <label><input type="checkbox" value="healthcare"> Здравоохранение</label>
+                        <label><input type="checkbox" value="education"> Образование</label>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label class="label" for="price">Стоимость консультации</label>
+                    <input class="input" id="price" type="number" min="0" max="100000" required/>       
+                </div>
+
+                <div class="input-wrapper">
+                    <label class="label" for="description">Описание сферы деятельности</label>
+                    <textarea class="description-input" id="description" spellcheck="true" required></textarea>    
+                </div>
+                
+                <div class="actions-wrapper">
+                    <button class="button" type="submit">Сохранить анкету</button>
+                    <button class="button" type="button">Отмена</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="side-image"></div>
+    </main>
+    <footer class="footer">
+        <div class="footer-wrapper footer-container">
+            <div class="footer-column">
+                <h2 class="footer-column-title">ТЕЛЕФОН</h2>
+                <a href="tel:+79001234567" class="footer-column-body">+7 (900) 123-45-67</a>
+            </div>
+
+            <div class="footer-column">
+                <h2 class="footer-column-title">АДРЕС</h2>
+                <address class="footer-column-body">г. Томск, ул. Примерная, д. 10</address>
+            </div>
+
+            <div class="footer-column">
+                <h2 class="footer-column-title">EMAIL</h2>
+                <a href="mailto:info@example.com" class="footer-column-body">info@example.com</a>
+            </div>
+
+            <div class="footer-column">
+                <h2 class="footer-column-title sol1als-title">КОНТАКТЫ</h2>
+                <div class="footer-soc1als">
+                    <ul class="footer-soc1als-list">
+                        <li class="footer-soc1als-item">
+                            <a href="https://web.telegram.org/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/telegram.png" alt="Иконка Teledram" width="50" height="50" />
+                            </a>
+                        </li>
+
+                        <li class="footer-soc1als-item">
+                            <a href="https://www.facebook.com/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/facebook.png" alt="Иконка Facebook" width="50" height="50" />
+                            </a>
+                        </li>
+
+                        <li class="footer-soc1als-item">
+                            <a href="https://vk.com/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/vk.png" alt="Иконка ВК" width="50" height="50" />
+                            </a>
+                        </li>
+
+                        <li class="footer-soc1als-item">
+                            <a href="https://www.whatsapp.com/" class="footer-soc1als-link" target="_blank">
+                                <img src="../images/whatsapp.png" alt="Иконка WhatsApp" width="50" height="50" />
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/create_card_script.js"></script>
+</body>
+</html>

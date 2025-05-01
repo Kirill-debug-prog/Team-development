@@ -1,0 +1,302 @@
+:root {
+  --color-dark: #000000;
+  --color-light: #FFFFFF;
+  --input-height: 38px;   
+  --border-radius: 8px;   
+}
+
+main {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--color-dark);
+  background-color: var(--color-light);
+}
+
+.container {
+  margin-inline: auto;
+  max-width: 2000px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  position: relative;
+} 
+
+.survey {
+  width: 750px;
+  margin-block: 50px;
+  margin-inline: auto;
+  padding: 35px 100px;
+  background-color: #F2F2F2;
+  border-radius: 30px;
+}
+
+.survey-title {
+  text-align: center;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.survey-title:not(:last-child) {
+  margin-bottom: 40px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  row-gap: 30px;
+}
+
+.input-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
+.label {
+  text-align: center;
+  font-style: italic;
+}
+
+
+.input {
+  height: var(--input-height);
+} 
+
+.input::placeholder {
+  font-style: italic;
+  color: #9A9A9A;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.input,
+.description-input {
+  border: 1px solid var(--color-dark);
+  border-radius: var(--border-radius);
+  padding-inline: 20px;
+}
+
+.experience-item {
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+}
+
+.experience-item:not(:last-child) {
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 3px dashed #ccc;
+}
+
+.experience-title-button-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+}
+
+.experience-item-title {
+  font-style: italic;
+  font-size: 14px;
+}
+
+.remove-experience-button {
+  display: inline-block;
+  width: 25px;
+  aspect-ratio: 1;
+  padding: 0;
+  text-align: center;
+  user-select: none;
+  background: #e22323;
+  color: var(--color-light);
+  border: none;
+  border-radius: 5px;
+}
+  
+@media (hover: hover) {
+  .remove-experience-button:hover {
+    background: #5a0000;
+  }
+
+  .add-experience-button:hover {
+    background-image: linear-gradient(90deg, #01C7FC 0%, #00A1D8 50%, #0056D6 100%);
+  }
+
+  .dropdown-options label:hover {
+    background: #5882FF;
+  }
+
+  .button:hover {
+    background: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
+  }
+}
+
+@media (hover: none) {
+  .remove-experience-button:active {
+    background: #5a0000;
+  }
+
+  .add-experience-button:active {
+    background-image: linear-gradient(90deg, #01C7FC 0%, #00A1D8 50%, #0056D6 100%);
+  }
+
+  .dropdown-options label:active {
+    background: #5882FF;
+  }
+
+  .button:active {
+    background: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
+  }
+}
+
+.add-experience-button {
+  border: none; 
+  background: none;
+  font-style: italic;
+  font-weight: 700;
+  user-select: none;
+  width: fit-content;
+  padding: 10px;
+  margin-left: auto;
+  background-image: linear-gradient(90deg, #70A7E7 0%, #1769C2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown {
+  width: auto;
+  padding: 10px;
+  border: 1px solid #CCC;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #E5E4E4;
+  text-align: center;
+}
+
+.dropdown-options {
+  display: none;
+  justify-content:flex-start;
+  flex-direction: column;
+  position: absolute;
+  width: 100%;
+  background: #E5E4E4;
+  border: 1px solid #CCC;
+  border-radius: 5px;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.dropdown-options label {
+  display: block;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.description-input {
+  margin-inline: -35px;
+  padding-block: 10px;
+  height: 150px;
+  min-height: 50px;
+  resize: vertical;
+}
+
+.actions-wrapper {
+  display: flex;
+  justify-content: center;
+  column-gap: 55px;
+}
+
+.button {
+  background: linear-gradient(90deg, #01C7FC 0%, #00A1D8 50%, #0056D6 100%);
+  border-radius: 10px;
+  border: none;
+  padding: 15px 30px;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--color-light);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.side-image {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: url('../images/create_card_side_photo.jpg') 0/cover no-repeat #9A9A9A;
+}
+
+@media(max-width: 1200px) {
+  .survey {
+    width: 650px;
+    padding-inline: 50px;
+  }
+}
+
+@media(max-width: 1000px) {
+  .container {
+    display: block;
+  } 
+  
+  .side-image {
+    display: none;
+  }
+}
+
+@media(max-width: 670px) {
+  main {
+    font-size: 14px;
+  }
+
+  .container {
+    display: flex;
+    justify-content: center;
+  }
+
+  .survey {
+    width: fit-content;
+    padding-inline: 8vw;
+    margin-inline: 10px;
+    margin-block: 20px;
+  }
+
+  .survey-title {
+    font-size: 20px;
+    line-height: 22px;
+  }
+
+  .input-wrapper {
+    row-gap: 10px;
+  }
+
+  .experience-item-title {
+    font-size: 12px;
+  }
+
+  .input,
+  .description-input {
+    padding: 3px 10px;
+    height: auto;
+  }
+
+  .description-input {
+    margin-inline: 0;
+    height: 150px;
+  }
+
+  .button {
+
+    padding: 7px 15px;
+    font-size: 14px;
+  }
+}
