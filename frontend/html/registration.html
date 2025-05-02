@@ -13,39 +13,54 @@
 <body>
     <main class="content">
         <div class="form-container">
-        <div class="form-wrapper">
-            <h1 class="form-title">Регистрация</h1>
-            <form class="form" action="" method="post">
-                <label class="visually-hidden" for="second_name">Фамилия</label>
-                <input class="form-input" id="second_name" placeholder="Фамилия" type="text" name="user_second_name" required/>
- 
-                <label class="visually-hidden" for="name">Имя</label>
-                <input class="form-input" id="name" placeholder="Имя" type="text" name="user_name" required/>
+            <div class="form-wrapper">
+                <h1 class="form-title">Регистрация</h1>
+                <form class="form" novalidate data-js-form>
+                    <div class="field">
+                        <label class="visually-hidden" for="second_name">Фамилия</label>
+                        <input class="form-input" id="second_name" placeholder="Фамилия" type="text" name="lastName" required minlength="2" maxlength="50"/>  
+                        <span class="field-errors" data-js-form-field-errors></span>
+                    </div>
+                    
+                    <div class="field">
+                        <label class="visually-hidden" for="name">Имя</label>
+                        <input class="form-input" id="name" placeholder="Имя" type="text" name="firstName" required minlength="2" maxlength="50"/>
+                        <span class="field-errors" data-js-form-field-errors></span>
+                    </div>
+                    
+                    <div class="field">
+                        <label class="visually-hidden" for="patronymic">Отчество</label>
+                        <input class="form-input" id="patronymic" placeholder="Отчество" type="text" name="middleName" minlength="0" maxlength="50"/>                    
+                        <span class="field-errors" data-js-form-field-errors></span>
+                    </div>
 
-                
-                <label class="visually-hidden" for="patronymic">Отчество</label>
-                <input class="form-input" id="patronymic" placeholder="Отчество" type="text" name="user_patronymic"/>
+                    <div class="field">
+                        <label class="visually-hidden" for="login">Email или номер телефона</label>
+                        <input class="form-input" id="login" placeholder="Email/Телефон" type="text" name="login" required  minlength="3" maxlength="50" pattern="^(((8|\+7|7)[\- ]?9\d{2}[\- ]?\d{3}[\- ]?\d{2}[\- ]?\d{2}[ ]?)|([a-zA-Z0-9_.\-]+@[a-zA-Z0-9_.\-]+))$"/>
+                        <span class="field-errors" data-js-form-field-errors></span>                
+                    </div>
 
-                <label class="visually-hidden" for="login">Email или номер телефона</label>
-                <input class="form-input" id="login" placeholder="Email/Телефон" type="text" name="user_login" required/>
+                    <div class="field password-wrapper">
+                        <label class="visually-hidden" for="password">Пароль</label>
+                        <input class="form-input" id="password" placeholder="Пароль" type="password" name="password" required  minlength="8" maxlength="100"/>
+                        <div class="show-hide-password display-none" onclick="showHidePassword(this)"></div>
+                        <span class="field-errors" data-js-form-field-errors></span>
+                    </div>
 
-                <div class="password-wrapper">
-                    <label class="visually-hidden" for="password">Пароль</label>
-                    <input class="form-input" id="password" placeholder="Пароль" type="password" name="user_password" required/>
-                    <div class="show-hide-password" onclick="showHidePassword(this)"></div>
-                </div>
+                    <div class="field password-wrapper">
+                        <label class="visually-hidden" for="password_repeated">Повторите пароль</label>
+                        <input class="form-input" id="password_repeated" placeholder="Повторите пароль" type="password" name="confirmPassword" required  minlength="8" maxlength="100"/>
+                        <div class="show-hide-password display-none" onclick="showHidePassword(this)"></div>
+                        <span class="field-errors" data-js-form-field-errors></span>
+                    </div>
 
-                <div class="password-wrapper">
-                    <label class="visually-hidden" for="password_repeated">Повторите пароль</label>
-                    <input class="form-input" id="password_repeated" placeholder="Повторите пароль" type="password" name="user_password_repeated" required/>
-                    <div class="show-hide-password" onclick="showHidePassword(this)"></div>
-                </div>
+                    <div class="form-errors" data-js-form-errors></div>
 
-                <button class="button" type="submit">
-                    Зарегистрироваться
-                </button>
-            </form>
-        </div>
+                    <button class="button" type="submit">
+                        Зарегистрироваться
+                    </button>
+                </form>
+            </div>
         </div>
     </main>
 

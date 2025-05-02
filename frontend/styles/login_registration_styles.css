@@ -46,7 +46,6 @@ a {
 .form-container {
   overflow: auto;
   max-height: 100vh;
-
 }
 
 .form-wrapper {
@@ -72,7 +71,7 @@ a {
   height: 2.4em;
   border: 1px solid var(--color-dark);
   border-radius: 30px;
-  padding-inline: 30px;
+  padding-inline: 20px;
 }
 
 .password-wrapper .form-input {
@@ -85,11 +84,12 @@ a {
 }
 
 .password-wrapper .form-input::placeholder {
-  padding-left: 15px;
+  padding-left: 25px;
 }
 
-.password-wrapper {
+.field {
   position: relative;
+  width: 400px;
 }
 
 .show-hide-password {
@@ -97,13 +97,49 @@ a {
   right: 5px;
   top: 0;
   width: 30px;
-  height: 100%;
+  height: 2.4em;
   margin-right: 5px;
   background: url('../icons/opened_eye.svg') center/70% no-repeat;
 }
 
 .to-hide {
   background: url('../icons/closed_eye.svg') center/70% no-repeat;
+}
+
+.display-none {
+  display: none;
+}
+
+.field-errors {
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.4em;
+  margin-top: 0.5em;
+  font-size: 0.8em;
+  color: red;
+  line-height: 1.1;
+}
+
+.field-errors:empty {
+  display: none;
+}
+
+.form-errors {
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.4em;
+  font-size: 0.8em;
+  background-color: rgb(255, 195, 195);
+  border-radius: 5px;
+  width: 100%;
+  padding: 10px;
+  margin-block: -15px;
+  color: red;
+  line-height: 1.1;
+}
+
+.form-errors:empty {
+  display: none;
 }
 
 .button {
@@ -141,9 +177,13 @@ a {
   }
 
   body {
-    font-size: 18px;
+    font-size: 16px;
   }
 
+  .field {
+    width: 300px;
+  }
+  
   .form-input {
     padding-inline: 15px;
   }
