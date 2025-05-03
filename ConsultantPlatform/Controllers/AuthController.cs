@@ -102,31 +102,27 @@ public class AuthController : ControllerBase
 
             var user = new User
             {
-                Id = Guid.NewGuid(), // Убедитесь, что это генерируется или присваивается правильно
+                Id = Guid.NewGuid(),
                 Login = model.Login,
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 MiddleName = model.MiddleName,
+                PhoneNumber = model.PhoneNumber,
+                Email = model.Email
             };
 
-            // **Хешируем пароль перед сохранением**
             user.Password = _passwordHasher.HashPassword(user, model.Password);
 
-            // Создаем пользователя в базе данных
             var createdUser = await _userService.CreateUser(user);
 
-            // Проверяем, успешно ли создан пользователь (на случай, если CreateUser может вернуть null)
             if (createdUser == null)
             {
-                 // Логирование ошибки, если создание пользователя не удалось
                  Console.Error.WriteLine($"Failed to create user for login: {model.Login}");
                  return StatusCode(500, "Failed to create user during registration");
             }
 
-            // Сразу после успешной регистрации, генерируем JWT для нового пользователя
             var tokenResponse = GenerateJwtTokenResponse(createdUser);
 
-            // Возвращаем JWT в ответе на запрос регистрации
             return Ok(new
             {
                 Message = "Registration successful and logged in",
@@ -136,7 +132,6 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Логирование ошибки
             Console.Error.WriteLine($"Error during registration: {ex.ToString()}");
             return StatusCode(500, "An error occurred during registration");
         }

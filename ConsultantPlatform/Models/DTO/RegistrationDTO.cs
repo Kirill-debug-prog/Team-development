@@ -27,5 +27,13 @@ namespace ConsultantPlatform.Models.DTO
 
         [StringLength(50, ErrorMessage = "Middle name cannot exceed 50 characters")]
         public string? MiddleName { get; set; }
+
+        [Phone(ErrorMessage = "Неверный формат номера телефона.")]
+        [StringLength(50, ErrorMessage = "Номер телефона не может превышать {1} символов.")]
+        public string? PhoneNumber { get; set; }
+
+        [EmailAddress(ErrorMessage = "Неверный формат адреса электронной почты.")]
+        [StringLength(200, ErrorMessage = "Адрес электронной почты не может превышать {1} символов.")]
+        public string? Email { get; set; }
     }
 }

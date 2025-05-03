@@ -35,19 +35,16 @@ namespace ConsultantPlatform.Service
             }
             catch (DbUpdateException ex)
             {
-                // Handle database-specific exceptions
                 throw new Exception("Failed to create user in database", ex);
             }
             catch (Exception ex)
             {
-                // Handle any other unexpected exceptions
                 throw new Exception("An error occurred while creating the user", ex);
             }
         }
 
-        public async Task<User?> UpdateUserAsync(User userUpdateData) // Возвращаем User? для ясности (или использовать Result pattern)
+        public async Task<User?> UpdateUserAsync(User userUpdateData)
         {
-            // 1. Базовая валидация входных данных
             if (userUpdateData == null)
             {
                 _logger.LogWarning("UpdateUserAsync called with null user data.");
@@ -56,72 +53,34 @@ namespace ConsultantPlatform.Service
 
             try
             {
-                // 2. Найти существующего пользователя по ID в базе данных
                 var existingUser = await _context.Users.FindAsync(userUpdateData.Id);
 
-                // 3. Проверить, найден ли пользователь
                 if (existingUser == null)
                 {
                     _logger.LogWarning("Attempted to update non-existent user with ID {UserId}", userUpdateData.Id);
-                    // Можно вернуть null, чтобы контроллер вернул NotFound, или бросить KeyNotFoundException
                     return null;
-                    // throw new KeyNotFoundException($"User with ID {userUpdateData.Id} not found.");
                 }
-
-                // 4. Применить изменения к найденной сущности (Контролируемое обновление)
-                // Обновляем только те поля, которые разрешено изменять через этот метод.
-                // Явно НЕ обновляем Id, Password, и, возможно, Login здесь.
 
                 existingUser.FirstName = userUpdateData.FirstName;
                 existingUser.LastName = userUpdateData.LastName;
                 existingUser.MiddleName = userUpdateData.MiddleName;
 
-                // **ВАЖНО:**
-                // - Обновление Login: Если вы хотите разрешить обновление логина,
-                //   вам НУЖНО добавить проверку на уникальность нового логина
-                //   *перед* сохранением изменений. Например:
-                //   if (existingUser.Login != userUpdateData.Login) {
-                //       bool loginExists = await _context.Users.AnyAsync(u => u.Login == userUpdateData.Login && u.Id != existingUser.Id);
-                //       if (loginExists) {
-                //           _logger.LogWarning("Attempted to update user {UserId} with already existing login {Login}", existingUser.Id, userUpdateData.Login);
-                //           throw new InvalidOperationException($"Login '{userUpdateData.Login}' is already taken."); // Или вернуть ошибку валидации
-                //       }
-                //       existingUser.Login = userUpdateData.Login;
-                //   }
-
-                // - Обновление Пароля: НИКОГДА не присваивайте пароль напрямую.
-                //   Создайте отдельный метод `ChangePasswordAsync(Guid userId, string oldPassword, string newPassword)`
-                //   который будет проверять старый пароль и хешировать новый перед сохранением.
-
-                // Альтернатива (если DTO точно соответствует обновляемым полям):
-                // _context.Entry(existingUser).CurrentValues.SetValues(userUpdateData);
-                // Этот метод скопирует все совпадающие по имени свойства. Используйте с осторожностью,
-                // чтобы не перезаписать Id, Password или другие не предназначенные для обновления поля.
-                // Обычно безопаснее присваивать вручную.
-
-                // 5. Сохранить изменения в базе данных
-                // EF Core автоматически отслеживает изменения в existingUser и сгенерирует нужный SQL UPDATE.
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("User with ID {UserId} updated successfully.", existingUser.Id);
 
-                // 6. Вернуть обновленную сущность
                 return existingUser;
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                // Эта ошибка возникает, если запись была изменена другим процессом
-                // после того, как мы ее загрузили (existingUser).
+
                 _logger.LogError(ex, "Concurrency conflict occurred while updating user with ID {UserId}.", userUpdateData.Id);
-                // Здесь можно реализовать стратегию разрешения конфликтов или просто сообщить об ошибке.
                 throw new Exception("Failed to update user due to a concurrency conflict. Please try again.", ex);
             }
-            catch (DbUpdateException ex) // Ловим ошибки уровня БД (например, нарушение ограничений)
+            catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Database error occurred while updating user with ID {UserId}.", userUpdateData.Id);
-                // Можно проверить InnerException на специфические ошибки БД (например, unique constraint)
                 throw new Exception("An error occurred while saving user changes to the database.", ex);
             }
-            // Не ловим здесь общие Exception, чтобы не скрывать неожиданные ошибки. Пусть они всплывают выше.
         }
 
         public async Task<User> DeleteUser(User user)
@@ -145,32 +104,25 @@ namespace ConsultantPlatform.Service
             }
         }
 
-        public async Task<User?> GetUserById(Guid id) // Изменили int id на Guid id и возвращаемый тип на User?
+        public async Task<User?> GetUserById(Guid id)
         {
             _logger.LogInformation("Attempting to retrieve user by ID {UserId}", id);
             try
             {
-                // FindAsync корректно работает с Guid ключами
                 var user = await _context.Users.FindAsync(id);
 
                 if (user == null)
                 {
                     _logger.LogWarning("User with ID {UserId} not found.", id);
-                    // Возвращаем null, если не найден. Контроллер должен обработать это как NotFound.
                     return null;
-                    // Или можно бросать исключение, если требуется другое поведение:
-                    // throw new KeyNotFoundException($"User with ID {id} not found");
                 }
 
                 _logger.LogInformation("Successfully retrieved user with ID {UserId}", id);
                 return user;
             }
-            // Не ловим KeyNotFoundException здесь, если возвращаем null выше
-            catch (Exception ex) // Ловим только общие/неожиданные ошибки
+            catch (Exception ex)
             {
-                // В сообщении об ошибке используем строковую интерполяцию или параметры логирования
                 _logger.LogError(ex, "Error retrieving user with ID {UserId}", id);
-                // Перебрасываем как общее исключение, чтобы не терять stack trace и тип ошибки
                 throw new Exception($"An error occurred while retrieving user with ID {id}", ex);
             }
         }
@@ -199,19 +151,24 @@ namespace ConsultantPlatform.Service
         public async Task<User?> GetUserProfileAsync(Guid userId)
         {
             _logger.LogInformation("Attempting to retrieve profile for user ID {UserId}", userId);
-            // Используем существующий метод GetUserById, так как он делает то же самое
-            // и уже содержит логирование и обработку ошибок.
-            // Убедимся, что GetUserById возвращает User? (nullable)
             return await GetUserById(userId);
         }
 
+        /// <summary>
+        /// Обновляет информацию профиля для указанного пользователя.
+        /// </summary>
+        /// <param name="userId">ID пользователя для обновления.</param>
+        /// <param name="profileData">DTO с обновленными данными профиля.</param>
+        /// <returns>Обновленная сущность User или null, если пользователь не найден.</returns>
+        /// <exception cref="ApplicationException">Происходит при ошибках базы данных.</exception>
+        /// <exception cref="KeyNotFoundException">Происходит, если пользователь не найден (если GetUserById бросает, а не возвращает null).</exception>
         public async Task<User?> UpdateUserProfileAsync(Guid userId, UpdateUserProfileDTO profileData)
         {
-            _logger.LogInformation("Attempting to update profile for user ID {UserId}", userId);
+            _logger.LogInformation("Попытка обновить профиль для пользователя с ID {UserId}", userId);
 
             if (profileData == null)
             {
-                _logger.LogWarning("UpdateUserProfileAsync called with null profile data for user ID {UserId}.", userId);
+                _logger.LogWarning("Вызов UpdateUserProfileAsync с нулевыми данными профиля для пользователя ID {UserId}.", userId);
                 throw new ArgumentNullException(nameof(profileData));
             }
 
@@ -221,32 +178,35 @@ namespace ConsultantPlatform.Service
 
                 if (existingUser == null)
                 {
-                    _logger.LogWarning("User profile not found for update. User ID {UserId}", userId);
-                    return null; // Пользователь не найден
+                    _logger.LogWarning("Профиль пользователя не найден в базе данных при попытке обновления для ID {UserId}.", userId);
+                    return null;
                 }
 
-                // Обновляем только разрешенные поля из DTO
                 existingUser.FirstName = profileData.FirstName;
                 existingUser.LastName = profileData.LastName;
-                existingUser.MiddleName = profileData.MiddleName; // Это безопасно, так как DTO его содержит
-
-                // НЕ обновляем Login, Password, Id
+                existingUser.MiddleName = profileData.MiddleName;
+                existingUser.PhoneNumber = profileData.PhoneNumber;
+                existingUser.Email = profileData.Email;
 
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Successfully updated profile for user ID {UserId}", userId);
+                _logger.LogInformation("Профиль для пользователя {UserId} успешно обновлен.", userId);
                 return existingUser;
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                _logger.LogError(ex, "Concurrency conflict occurred while updating profile for user ID {UserId}.", userId);
-                throw new Exception("Failed to update profile due to a concurrency conflict. Please try again.", ex);
+                _logger.LogError(ex, "Конфликт параллелизма при обновлении профиля для пользователя с ID {UserId}.", userId);
+                throw new ApplicationException("Не удалось обновить профиль из-за конфликта параллелизма. Попробуйте снова.", ex);
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Database error occurred while updating profile for user ID {UserId}.", userId);
-                throw new Exception("An error occurred while saving profile changes to the database.", ex);
+                _logger.LogError(ex, "Ошибка базы данных при обновлении профиля для пользователя с ID {UserId}.", userId);
+                throw new ApplicationException("Ошибка сохранения изменений профиля в базе данных.", ex);
             }
-            // Общие Exception пусть обрабатываются выше
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Непредвиденная ошибка при обновлении профиля для пользователя с ID {UserId}", userId);
+                throw new Exception("Произошла внутренняя ошибка сервера при обновлении профиля.", ex);
+            }
         }
 
         /// <summary>

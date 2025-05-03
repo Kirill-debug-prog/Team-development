@@ -7,29 +7,12 @@ namespace ConsultantPlatform.Models.DTO
     /// </summary>
     public class UserProfileDTO
     {
-        /// <summary>
-        /// User's unique identifier.
-        /// </summary>
         public Guid Id { get; set; }
-
-        /// <summary>
-        /// User's login name.
-        /// </summary>
         public string Login { get; set; } = string.Empty;
-
-        /// <summary>
-        /// User's first name.
-        /// </summary>
-        public string? FirstName { get; set; } // Может быть null, если не указано при регистрации
-
-        /// <summary>
-        /// User's last name.
-        /// </summary>
-        public string? LastName { get; set; } // Может быть null
-
-        /// <summary>
-        /// User's middle name (optional).
-        /// </summary>
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
         public string? MiddleName { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Email { get; set; }
     }
 }
