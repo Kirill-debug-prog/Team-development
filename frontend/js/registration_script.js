@@ -152,13 +152,6 @@ function makeRegisterRequest() {
 		body: JSON.stringify({...formDataObject})
 	})
 	.then(async (response) => {
-
-		if (!response.ok) {
-			if (response.status !== 400) {
-				throw new Error('Что-то пошло не так, попробуйте еще раз');
-			}
-		}
-
 		if (!response.ok) {
 			if (response.status !== 400) {
 				throw new Error('Что-то пошло не так, попробуйте еще раз');

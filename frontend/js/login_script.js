@@ -143,11 +143,11 @@ function makeRequest() {
 	})
 	.then(async (response) => {
 		if (!response.ok) {
-			if (response.status !== 400) {
-				throw new Error('Что-то пошло не так, попробуйте еще раз');
+			if (response.status == 401) {
+				throw new Error('Неверный логин или пароль');
 			}
-			const json = await response.json();
-			throw new Error(json.message === "User doesn't exist" || json.message === "Invalid password" ? 'Неверный логин или пароль' : 'Логин или пароль не соответствуют формату');
+
+			throw new Error('Что-то пошло не так, попробуйте еще раз');
 		}
 		return response.json();
 	})
