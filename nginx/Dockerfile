@@ -11,6 +11,9 @@ COPY ./frontend/fonts/ /usr/share/nginx/html/fonts/
 COPY ./frontend/icons/ /usr/share/nginx/html/icons/
 
 COPY ./frontend/images/ /usr/share/nginx/html/images/
+
+COPY ./frontend/styles/ /usr/share/nginx/html/styles/
+
 EXPOSE 80
 
 # Эта команда, скорее всего, уже есть по умолчанию в образе, но лучше явно указать
