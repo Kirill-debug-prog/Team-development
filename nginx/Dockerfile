@@ -1,10 +1,16 @@
 FROM nginx:latest
 
 COPY ./nginx.conf /etc/nginx/nginx.conf
-# Копируем все содержимое папки frontend в директорию Nginx для статики
-# ВНИМАНИЕ: Читайте пояснения ниже, почему это может не работать как вы ожидаете
-COPY ./frontend/ /usr/share/nginx/html/
 
+COPY ./frontend/html/ /usr/share/nginx/html/
+
+COPY ./frontend/js/ /usr/share/nginx/html/js/
+
+COPY ./frontend/fonts/ /usr/share/nginx/html/fonts/
+
+COPY ./frontend/icons/ /usr/share/nginx/html/icons/
+
+COPY ./frontend/images/ /usr/share/nginx/html/images/
 EXPOSE 80
 
 # Эта команда, скорее всего, уже есть по умолчанию в образе, но лучше явно указать
