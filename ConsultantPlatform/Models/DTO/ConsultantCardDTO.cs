@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic; // Для List<>
-using System.ComponentModel.DataAnnotations; // Если будете добавлять валидацию сюда
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace ConsultantPlatform.Models.DTO
 {
@@ -8,27 +8,21 @@ namespace ConsultantPlatform.Models.DTO
     {
         public Guid Id { get; set; }
 
-        // --- Добавляем валидацию для полей, которые были пропущены ранее ---
-        [Required(ErrorMessage = "Title is required")]
-        [StringLength(200, MinimumLength = 5, ErrorMessage = "Title must be between 5 and 200 characters")]
+        [Required(ErrorMessage = "Заголовок карточки обязателен")]
+        [StringLength(200, MinimumLength = 5, ErrorMessage = "Заголовок должен содержать от {2} до {1} символов")]
         public string Title { get; set; } = null!;
 
         public string? Description { get; set; }
 
-        // MentorId здесь информационный, для обновления/создания он берется из токена
         public Guid MentorId { get; set; }
 
-        [Required(ErrorMessage = "Price per hour is required")]
-        [Range(0, (double)decimal.MaxValue, ErrorMessage = "Price must be non-negative")] // Убедимся, что цена не отрицательная
+        public string? MentorFullName { get; set; }
+
+        [Required(ErrorMessage = "Цена за час обязательна")]
+        [Range(0, (double)decimal.MaxValue, ErrorMessage = "Цена должна быть неотрицательной")]
         public decimal PricePerHours { get; set; }
 
-        // --- Заменяем старое поле Experience на коллекцию ---
         public List<ExperienceDTO> Experiences { get; set; } = new List<ExperienceDTO>();
 
-        // Опционально: можно добавить поле для суммарного опыта, если нужно
-        // public float? TotalExperienceYears { get; set; }
-
-        // --- Добавим имя Ментора для удобства отображения? ---
-        // public string? MentorFullName { get; set; } // Потребует Include(c => c.Mentor) в сервисе
     }
 }

@@ -68,20 +68,20 @@ main {
   font-weight: 700;
   border-radius: 10px;
   padding: 10px 30px;
-  background: #8338c4;
-  background-image: linear-gradient(90deg, #7f469d 0%, #8338c4 50%, #8a35da 75%, #af41ee 87.5%, #e65ffb 100%);
+  background-color: rgba(89, 129, 106, 0.8);
+  border: 1px solid rgba(151, 176, 162, 0.9);
   transition-duration: 0.2s;
 }
 
 @media (hover: hover) {
   .message-button:hover {
-    background-image: linear-gradient(-90deg, #7f469d 0%, #8338c4 50%, #8a35da 75%, #af41ee 87.5%, #e65ffb 100%);
+    background-color: rgba(146, 181, 161, 0.8);
   }
 }
 
 @media (hover: none) {
   .message-button:active {
-    background-image: linear-gradient(-90deg, #7f469d 0%, #8338c4 50%, #8a35da 75%, #af41ee 87.5%, #e65ffb 100%);
+    background-color: rgba(146, 181, 161, 0.8);
   }
 }
 

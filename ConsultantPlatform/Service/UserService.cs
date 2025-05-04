@@ -1,10 +1,10 @@
 ﻿using ConsultantPlatform.Models.Entity;
-using Microsoft.AspNetCore.Identity; // <-- Добавить using для PasswordHasher
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
-using ConsultantPlatform.Models.DTO; // <-- Добавить using для DTO
+using ConsultantPlatform.Models.DTO;
 
 namespace ConsultantPlatform.Service
 {
@@ -14,7 +14,6 @@ namespace ConsultantPlatform.Service
         private readonly ILogger<UserService> _logger;
         private readonly PasswordHasher<User> _passwordHasher;
 
-        // Изменить конструктор для приема логгера
         public UserService(MentiContext context, ILogger<UserService> logger, PasswordHasher<User> passwordHasher)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -22,196 +21,171 @@ namespace ConsultantPlatform.Service
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
         }
 
+        /// <summary>
+        /// Создает нового пользователя в базе данных.
+        /// </summary>
+        /// <param name="user">Сущность пользователя для создания (пароль должен быть уже хеширован).</param>
+        /// <returns>Созданная сущность пользователя.</returns>
+        /// <exception cref="ArgumentNullException">Если входная сущность пользователя равна null.</exception>
+        /// <exception cref="Exception">Происходит при ошибках базы данных или других ошибках сохранения.</exception>
         public async Task<User> CreateUser(User user)
         {
+            _logger.LogInformation("Попытка создать пользователя с логином: {Login}", user?.Login);
             try
             {
                 if (user == null)
+                {
+                    _logger.LogWarning("Вызов CreateUser с нулевыми данными пользователя.");
                     throw new ArgumentNullException(nameof(user));
+                }
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("Пользователь с ID {UserId} и логином {Login} успешно создан.", user.Id, user.Login);
                 return user;
             }
             catch (DbUpdateException ex)
             {
-                // Handle database-specific exceptions
-                throw new Exception("Failed to create user in database", ex);
+                _logger.LogError(ex, "Ошибка базы данных при создании пользователя с логином {Login}", user.Login);
+                // Можно проверить ex.InnerException на специфические ошибки (например, Unique Constraint Violation)
+                throw new Exception("Не удалось создать пользователя в базе данных.", ex);
             }
             catch (Exception ex)
             {
-                // Handle any other unexpected exceptions
-                throw new Exception("An error occurred while creating the user", ex);
+                _logger.LogError(ex, "Непредвиденная ошибка при создании пользователя с логином {Login}", user.Login);
+                throw new Exception("Произошла ошибка при создании пользователя.", ex);
             }
         }
 
-        public async Task<User?> UpdateUserAsync(User userUpdateData) // Возвращаем User? для ясности (или использовать Result pattern)
-        {
-            // 1. Базовая валидация входных данных
-            if (userUpdateData == null)
-            {
-                _logger.LogWarning("UpdateUserAsync called with null user data.");
-                throw new ArgumentNullException(nameof(userUpdateData));
-            }
-
-            try
-            {
-                // 2. Найти существующего пользователя по ID в базе данных
-                var existingUser = await _context.Users.FindAsync(userUpdateData.Id);
-
-                // 3. Проверить, найден ли пользователь
-                if (existingUser == null)
-                {
-                    _logger.LogWarning("Attempted to update non-existent user with ID {UserId}", userUpdateData.Id);
-                    // Можно вернуть null, чтобы контроллер вернул NotFound, или бросить KeyNotFoundException
-                    return null;
-                    // throw new KeyNotFoundException($"User with ID {userUpdateData.Id} not found.");
-                }
-
-                // 4. Применить изменения к найденной сущности (Контролируемое обновление)
-                // Обновляем только те поля, которые разрешено изменять через этот метод.
-                // Явно НЕ обновляем Id, Password, и, возможно, Login здесь.
-
-                existingUser.FirstName = userUpdateData.FirstName;
-                existingUser.LastName = userUpdateData.LastName;
-                existingUser.MiddleName = userUpdateData.MiddleName;
-
-                // **ВАЖНО:**
-                // - Обновление Login: Если вы хотите разрешить обновление логина,
-                //   вам НУЖНО добавить проверку на уникальность нового логина
-                //   *перед* сохранением изменений. Например:
-                //   if (existingUser.Login != userUpdateData.Login) {
-                //       bool loginExists = await _context.Users.AnyAsync(u => u.Login == userUpdateData.Login && u.Id != existingUser.Id);
-                //       if (loginExists) {
-                //           _logger.LogWarning("Attempted to update user {UserId} with already existing login {Login}", existingUser.Id, userUpdateData.Login);
-                //           throw new InvalidOperationException($"Login '{userUpdateData.Login}' is already taken."); // Или вернуть ошибку валидации
-                //       }
-                //       existingUser.Login = userUpdateData.Login;
-                //   }
-
-                // - Обновление Пароля: НИКОГДА не присваивайте пароль напрямую.
-                //   Создайте отдельный метод `ChangePasswordAsync(Guid userId, string oldPassword, string newPassword)`
-                //   который будет проверять старый пароль и хешировать новый перед сохранением.
-
-                // Альтернатива (если DTO точно соответствует обновляемым полям):
-                // _context.Entry(existingUser).CurrentValues.SetValues(userUpdateData);
-                // Этот метод скопирует все совпадающие по имени свойства. Используйте с осторожностью,
-                // чтобы не перезаписать Id, Password или другие не предназначенные для обновления поля.
-                // Обычно безопаснее присваивать вручную.
-
-                // 5. Сохранить изменения в базе данных
-                // EF Core автоматически отслеживает изменения в existingUser и сгенерирует нужный SQL UPDATE.
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("User with ID {UserId} updated successfully.", existingUser.Id);
-
-                // 6. Вернуть обновленную сущность
-                return existingUser;
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                // Эта ошибка возникает, если запись была изменена другим процессом
-                // после того, как мы ее загрузили (existingUser).
-                _logger.LogError(ex, "Concurrency conflict occurred while updating user with ID {UserId}.", userUpdateData.Id);
-                // Здесь можно реализовать стратегию разрешения конфликтов или просто сообщить об ошибке.
-                throw new Exception("Failed to update user due to a concurrency conflict. Please try again.", ex);
-            }
-            catch (DbUpdateException ex) // Ловим ошибки уровня БД (например, нарушение ограничений)
-            {
-                _logger.LogError(ex, "Database error occurred while updating user with ID {UserId}.", userUpdateData.Id);
-                // Можно проверить InnerException на специфические ошибки БД (например, unique constraint)
-                throw new Exception("An error occurred while saving user changes to the database.", ex);
-            }
-            // Не ловим здесь общие Exception, чтобы не скрывать неожиданные ошибки. Пусть они всплывают выше.
-        }
-
+        /// <summary>
+        /// Удаляет пользователя из базы данных.
+        /// </summary>
+        /// <param name="user">Сущность пользователя для удаления.</param>
+        /// <returns>Удаленная сущность пользователя.</returns>
+        /// <exception cref="ArgumentNullException">Если входная сущность пользователя равна null.</exception>
+        /// <exception cref="Exception">Происходит при ошибках базы данных или других ошибках удаления.</exception>
         public async Task<User> DeleteUser(User user)
         {
+            _logger.LogInformation("Попытка удалить пользователя с ID {UserId}", user?.Id);
             try
             {
                 if (user == null)
+                {
+                    _logger.LogWarning("Вызов DeleteUser с нулевыми данными пользователя.");
                     throw new ArgumentNullException(nameof(user));
+                }
 
                 _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("Пользователь с ID {UserId} успешно удален.", user.Id);
                 return user;
             }
             catch (DbUpdateException ex)
             {
-                throw new Exception("Failed to delete user from database", ex);
+                _logger.LogError(ex, "Ошибка базы данных при удалении пользователя с ID {UserId}", user.Id);
+                throw new Exception("Не удалось удалить пользователя из базы данных.", ex);
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while deleting the user", ex);
+                _logger.LogError(ex, "Непредвиденная ошибка при удалении пользователя с ID {UserId}", user.Id);
+                throw new Exception("Произошла ошибка при удалении пользователя.", ex);
             }
         }
 
-        public async Task<User?> GetUserById(Guid id) // Изменили int id на Guid id и возвращаемый тип на User?
+        /// <summary>
+        /// Получает пользователя по уникальному идентификатору.
+        /// </summary>
+        /// <param name="id">ID пользователя.</param>
+        /// <returns>Сущность пользователя или null, если пользователь не найден.</returns>
+        /// <exception cref="Exception">Происходит при ошибках базы данных или других непредвиденных ошибках.</exception>
+        public async Task<User?> GetUserById(Guid id)
         {
-            _logger.LogInformation("Attempting to retrieve user by ID {UserId}", id);
+            _logger.LogInformation("Попытка получить пользователя по ID {UserId}", id);
             try
             {
-                // FindAsync корректно работает с Guid ключами
                 var user = await _context.Users.FindAsync(id);
 
                 if (user == null)
                 {
-                    _logger.LogWarning("User with ID {UserId} not found.", id);
-                    // Возвращаем null, если не найден. Контроллер должен обработать это как NotFound.
+                    _logger.LogWarning("Пользователь с ID {UserId} не найден.", id);
                     return null;
-                    // Или можно бросать исключение, если требуется другое поведение:
-                    // throw new KeyNotFoundException($"User with ID {id} not found");
                 }
 
-                _logger.LogInformation("Successfully retrieved user with ID {UserId}", id);
+                _logger.LogInformation("Пользователь с ID {UserId} успешно получен.", id);
                 return user;
             }
-            // Не ловим KeyNotFoundException здесь, если возвращаем null выше
-            catch (Exception ex) // Ловим только общие/неожиданные ошибки
+            catch (Exception ex)
             {
-                // В сообщении об ошибке используем строковую интерполяцию или параметры логирования
-                _logger.LogError(ex, "Error retrieving user with ID {UserId}", id);
-                // Перебрасываем как общее исключение, чтобы не терять stack trace и тип ошибки
-                throw new Exception($"An error occurred while retrieving user with ID {id}", ex);
+                _logger.LogError(ex, "Ошибка при получении пользователя по ID {UserId}", id);
+                throw new Exception($"Произошла ошибка при получении пользователя с ID {id}", ex);
             }
         }
 
-        public async Task<User> GetUserByLogin(string login)
+        /// <summary>
+        /// Получает пользователя по логину.
+        /// </summary>
+        /// <param name="login">Логин пользователя.</param>
+        /// <returns>Сущность пользователя или null, если пользователь не найден.</returns>
+        /// <exception cref="ArgumentNullException">Если логин равен null или пуст.</exception>
+        /// <exception cref="Exception">Происходит при ошибках базы данных или других непредвиденных ошибках.</exception>
+        public async Task<User?> GetUserByLogin(string login)
         {
+            _logger.LogInformation("Попытка получить пользователя по логину: {Login}", login);
             try
             {
                 if (string.IsNullOrEmpty(login))
+                {
+                    _logger.LogWarning("Вызов GetUserByLogin с пустым логином.");
                     throw new ArgumentNullException(nameof(login));
+                }
+
 
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.Login == login);
 
                 if (user == null)
+                {
+                    _logger.LogWarning("Пользователь с логином {Login} не найден.", login);
                     return null;
+                }
 
+                _logger.LogInformation("Пользователь с логином {Login} успешно получен.", login);
                 return user;
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error retrieving user with name {login}", ex);
+                _logger.LogError(ex, "Ошибка при получении пользователя по логину {Login}", login);
+                throw new Exception($"Произошла ошибка при получении пользователя с логином {login}", ex);
             }
         }
 
+        /// <summary>
+        /// Получает информацию профиля для указанного пользователя.
+        /// </summary>
+        /// <param name="userId">ID пользователя.</param>
+        /// <returns>Сущность User или null, если пользователь не найден.</returns>
         public async Task<User?> GetUserProfileAsync(Guid userId)
         {
-            _logger.LogInformation("Attempting to retrieve profile for user ID {UserId}", userId);
-            // Используем существующий метод GetUserById, так как он делает то же самое
-            // и уже содержит логирование и обработку ошибок.
-            // Убедимся, что GetUserById возвращает User? (nullable)
+            _logger.LogInformation("Попытка получить профиль для пользователя с ID {UserId}", userId);
             return await GetUserById(userId);
         }
 
+        /// <summary>
+        /// Обновляет информацию профиля для указанного пользователя.
+        /// </summary>
+        /// <param name="userId">ID пользователя для обновления.</param>
+        /// <param name="profileData">DTO с обновленными данными профиля.</param>
+        /// <returns>Обновленная сущность User или null, если пользователь не найден.</returns>
+        /// <exception cref="ArgumentNullException">Если profileData равен null.</exception>
+        /// <exception cref="ApplicationException">Происходит при конфликте параллелизма или ошибках базы данных.</exception>
+        /// <exception cref="Exception">Происходит при других непредвиденных ошибках.</exception>
         public async Task<User?> UpdateUserProfileAsync(Guid userId, UpdateUserProfileDTO profileData)
         {
-            _logger.LogInformation("Attempting to update profile for user ID {UserId}", userId);
+            _logger.LogInformation("Попытка обновить профиль для пользователя с ID {UserId}", userId);
 
             if (profileData == null)
             {
-                _logger.LogWarning("UpdateUserProfileAsync called with null profile data for user ID {UserId}.", userId);
+                _logger.LogWarning("Вызов UpdateUserProfileAsync с нулевыми данными профиля для пользователя ID {UserId}.", userId);
                 throw new ArgumentNullException(nameof(profileData));
             }
 
@@ -221,46 +195,52 @@ namespace ConsultantPlatform.Service
 
                 if (existingUser == null)
                 {
-                    _logger.LogWarning("User profile not found for update. User ID {UserId}", userId);
-                    return null; // Пользователь не найден
+                    _logger.LogWarning("Профиль пользователя не найден в базе данных при попытке обновления для ID {UserId}.", userId);
+                    return null;
                 }
 
-                // Обновляем только разрешенные поля из DTO
+                // Обновляем поля из DTO, включая новые
                 existingUser.FirstName = profileData.FirstName;
                 existingUser.LastName = profileData.LastName;
-                existingUser.MiddleName = profileData.MiddleName; // Это безопасно, так как DTO его содержит
+                existingUser.MiddleName = profileData.MiddleName;
+                existingUser.PhoneNumber = profileData.PhoneNumber;
+                existingUser.Email = profileData.Email;
 
-                // НЕ обновляем Login, Password, Id
 
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Successfully updated profile for user ID {UserId}", userId);
+                _logger.LogInformation("Профиль для пользователя {UserId} успешно обновлен.", userId);
                 return existingUser;
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                _logger.LogError(ex, "Concurrency conflict occurred while updating profile for user ID {UserId}.", userId);
-                throw new Exception("Failed to update profile due to a concurrency conflict. Please try again.", ex);
+                _logger.LogError(ex, "Конфликт параллелизма при обновлении профиля для пользователя с ID {UserId}.", userId);
+                throw new ApplicationException("Не удалось обновить профиль из-за конфликта параллелизма. Попробуйте снова.", ex);
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Database error occurred while updating profile for user ID {UserId}.", userId);
-                throw new Exception("An error occurred while saving profile changes to the database.", ex);
+                _logger.LogError(ex, "Ошибка базы данных при обновлении профиля для пользователя с ID {UserId}.", userId);
+                throw new ApplicationException("Ошибка сохранения изменений профиля в базе данных.", ex);
             }
-            // Общие Exception пусть обрабатываются выше
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Непредвиденная ошибка при обновлении профиля для пользователя с ID {UserId}", userId);
+                throw new Exception("Произошла непредвиденная ошибка при обновлении профиля.", ex);
+            }
         }
 
+
         /// <summary>
-        /// Changes the password for a specified user after verifying the current password.
+        /// Изменяет пароль для указанного пользователя после проверки текущего пароля.
         /// </summary>
-        /// <param name="userId">The ID of the user whose password to change.</param>
-        /// <param name="oldPassword">The user's current password.</param>
-        /// <param name="newPassword">The desired new password.</param>
-        /// <returns>True if the password was changed successfully, false if the old password was incorrect.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown if the user with the specified ID is not found.</exception>
-        /// <exception cref="Exception">Thrown for database or other unexpected errors.</exception>
+        /// <param name="userId">ID пользователя, чей пароль нужно изменить.</param>
+        /// <param name="oldPassword">Текущий пароль пользователя.</param>
+        /// <param name="newPassword">Новый пароль.</param>
+        /// <returns>True, если пароль успешно изменен, false, если старый пароль неверный.</returns>
+        /// <exception cref="KeyNotFoundException">Происходит, если пользователь с указанным ID не найден.</exception>
+        /// <exception cref="Exception">Происходит при ошибках базы данных или других непредвиденных ошибках.</exception>
         public async Task<bool> ChangePasswordAsync(Guid userId, string oldPassword, string newPassword)
         {
-            _logger.LogInformation("Attempting to change password for user ID {UserId}", userId);
+            _logger.LogInformation("Попытка сменить пароль для пользователя с ID {UserId}", userId);
 
             try
             {
@@ -268,48 +248,39 @@ namespace ConsultantPlatform.Service
 
                 if (user == null)
                 {
-                    _logger.LogWarning("User not found when attempting to change password. User ID {UserId}", userId);
-                    // Бросаем исключение, так как это неожиданная ситуация для запроса смены пароля
-                    // аутентифицированным пользователем.
-                    throw new KeyNotFoundException($"User with ID {userId} not found.");
+                    _logger.LogWarning("Пользователь не найден при попытке смены пароля. User ID {UserId}", userId);
+                    throw new KeyNotFoundException($"Пользователь с ID {userId} не найден.");
                 }
 
-                // 1. Проверить старый пароль
                 var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.Password, oldPassword);
 
                 if (verificationResult == PasswordVerificationResult.Failed)
                 {
-                    _logger.LogWarning("Incorrect current password provided for user ID {UserId}", userId);
-                    return false; // Старый пароль неверный
+                    _logger.LogWarning("Указан неверный текущий пароль при смене пароля для пользователя с ID {UserId}", userId);
+                    return false;
                 }
 
-                // Если результат SuccessRehashNeeded, пароль верный, но хеш нужно обновить.
-                // Мы все равно будем генерировать новый хеш, так что это покрывается.
-
-                // 2. Сгенерировать хеш для нового пароля
                 var newPasswordHash = _passwordHasher.HashPassword(user, newPassword);
-
-                // 3. Обновить пароль пользователя
                 user.Password = newPasswordHash;
 
-                // 4. Сохранить изменения
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Password successfully changed for user ID {UserId}", userId);
-                return true; // Пароль успешно изменен
+                _logger.LogInformation("Пароль успешно изменен для пользователя с ID {UserId}.", userId);
+                return true;
             }
-            // KeyNotFoundException будет проброшена выше
+            catch (KeyNotFoundException)
+            {
+                throw;
+            }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Database error occurred while changing password for user ID {UserId}.", userId);
-                throw new Exception("An error occurred while saving the new password.", ex);
+                _logger.LogError(ex, "Ошибка базы данных при смене пароля для пользователя с ID {UserId}.", userId);
+                throw new Exception("Произошла ошибка при сохранении нового пароля.", ex);
             }
-            catch (Exception ex) // Ловим другие неожиданные ошибки
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error occurred while changing password for user ID {UserId}", userId);
-                // Не скрываем KeyNotFoundException
-                if (ex is KeyNotFoundException) throw;
-                throw new Exception("An unexpected error occurred while changing the password.", ex);
+                _logger.LogError(ex, "Непредвиденная ошибка при смене пароля для пользователя с ID {UserId}", userId);
+                throw new Exception("Произошла непредвиденная ошибка при смене пароля.", ex);
             }
         }
 

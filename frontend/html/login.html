@@ -12,21 +12,34 @@
 </head>
 <body>
     <main class="content">
-        <div class="form-wrapper">
-            <h1 class="form-title">Вход</h1>
-            <form class="form" action="" method="post">
-                <label class="visually-hidden" for="login">Email или номер телефона</label>
-                <input class="form-input" id="login" placeholder="Email/Телефон" type="text" name="user_login" required/>
- 
-                <label class="visually-hidden" for="password">Пароль</label>
-                <input class="form-input" id="password" placeholder="Пароль" type="password" name="user_password" required/>
+        <div class="form-container">
+            <div class="form-wrapper">
+                <h1 class="form-title">Вход</h1>
+                <form class="form" novalidate data-js-form>
+                    <div class="field">
+                        <label class="visually-hidden" for="login">Email или номер телефона</label>
+                        <input class="form-input" id="login" placeholder="Email/Телефон" type="text" name="login" required minlength="3" maxlength="50" pattern="^(((8|\+7|7)[\- ]?9\d{2}[\- ]?\d{3}[\- ]?\d{2}[\- ]?\d{2}[ ]?)|([a-zA-Z0-9_.\-]+@[a-zA-Z0-9_.\-]+))$"/>
+                        <span class="field-errors" data-js-form-field-errors></span>
+                    </div>
 
-                <button class="button" type="submit">
-                    Войти
-                </button>
-                <a href="./registration.html" class="button gray">Регистрация</a>  
-            </form>
+                    <div class="password-wrapper field">
+                        <label class="visually-hidden" for="password">Пароль</label>
+                        <input class="form-input" id="password" placeholder="Пароль" type="password" name="password" required minlength="8" maxlength="100"/>
+                        <div class="show-hide-password display-none" onclick="showHidePassword(this)"></div>
+                        <span class="field-errors" data-js-form-field-errors></span>
+                    </div>
+
+                    <div class="form-errors" data-js-form-errors></div>
+
+                    <button class="button" type="submit">
+                        Войти
+                    </button>
+                    <a href="./registration.html" class="button gray">Регистрация</a>  
+                </form>
+            </div>
         </div>
     </main>
+
+    <script src="../js/login_script.js"></script>
 </body>
 </html>

@@ -85,10 +85,10 @@
                 <img class="user-avatar"
                     src="../images/default_user_photo.jpg"
                     alt="Фотография профиля"/>
-                <div class="user-name">Петров Александр Сергеевич</div>
+                <div class="user-name"><span class="last-name">Петров</span> <span class="first-name">Александр</span> <span class="patronymic">Сергеевич</span></div>
                 <div class="profile-actions-wrapper">
-                    <button class="button" type="button">Редактировать</button>
-                    <button class="button" type="button">Изменить пароль</button>
+                    <button class="button" type="button" onclick="modifyUserWindow()">Редактировать</button>
+                    <button class="button" type="button" onclick="modifyingPassword.showModal()">Изменить пароль</button>
                 </div>
             </div>
         </header>
@@ -124,8 +124,8 @@
                     </div>
 
                     <div class="card-actions-wrapper">
-                        <a href="/" class="transparent-button">Редактировать</a>
-                        <button class="transparent-button" type="button" onclick="remove(this)">Удалить</button>
+                        <a href="./modify_card.html" class="transparent-button">Редактировать</a>
+                        <button class="transparent-button delete-card-button" type="button">Удалить</button>
                     </div>
                 </article>
 
@@ -157,8 +157,8 @@
                     </div>
 
                     <div class="card-actions-wrapper">
-                        <a href="/" class="transparent-button">Редактировать</a>
-                        <button class="transparent-button" type="button" onclick="remove(this)">Удалить</button>
+                        <a href="./modify_card.html" class="transparent-button">Редактировать</a>
+                        <button class="transparent-button delete-card-button" type="button">Удалить</button>
                     </div>
                 </article>
 
@@ -190,8 +190,8 @@
                     </div>
 
                     <div class="card-actions-wrapper">
-                        <a href="/" class="transparent-button">Редактировать</a>
-                        <button class="transparent-button" type="button" onclick="remove(this)">Удалить</button>
+                        <a href="./modify_card.html" class="transparent-button">Редактировать</a>
+                        <button class="transparent-button delete-card-button" type="button">Удалить</button>
                     </div>
                 </article>
             </section>
@@ -247,6 +247,75 @@
             </div>
         </div>
     </footer>
+
+    <dialog class="modify-user-info-window" id="modifyingUserInfo">
+        <div class="dialog-title">Редактировать</div>
+
+        <div class="avatar">
+            <div class="image-before">
+                <img class="dialog-user-avatar" src="../images/default_user_photo.jpg" alt="Фотография вашего профиля">
+            </div>
+            
+            <div class="avatar-actions display-none">
+                <label for="avatar" class="avatar-actions-button change-avatar-button">Обновить фото</label>
+                <input type="file" id="avatar" name="avatar" accept=".png, .jpg, .jpeg" />
+                
+                <button class="avatar-actions-button delete-avatar-button" type="button">Удалить</button>
+            </div>
+        </div>
+
+        <form action="" class="dialog-form">
+            <label class="dialog-label" for="last-name">Фамилия</label>
+            <input class="dialog-input" id="last-name" name="last_name" required maxlength="30"/>
+
+            <label class="dialog-label" for="first-name">Имя</label>
+            <input class="dialog-input" id="first-name" name="first_name" required required maxlength="30"/>
+
+            <label class="dialog-label" for="patronymic">Отчество</label>
+            <input class="dialog-input" id="patronymic" name="patronymic" required maxlength="30"/>
+        </form>
+
+        <div class="dialog-actions-wrapper">
+            <button class="dialog-button" onclick="saveNewUserInfo(this)">Сохранить</button>
+            <button class="dialog-button" onclick="closeWindow(this)">Отмена</button>
+        </div>
+    </dialog>
+
+    <dialog class="modify-password-window" id="modifyingPassword">
+        <div class="dialog-title">Смена пароля</div>
+        <form action="" class="dialog-form">
+            <label class="dialog-label" for="old-password">Старый пароль</label>
+            <div class="password-input-wrapper">
+                <input class="dialog-input" id="old-password" type="password" name="old_password" required/>
+                <div class="show-hide-password" onclick="showHidePassword(this)"></div>
+            </div>
+
+            <label class="dialog-label" for="new-password">Новый пароль</label>
+            <div class="password-input-wrapper">
+                <input class="dialog-input" id="new-password" type="password" name="new_password" required/>
+                <div class="show-hide-password" onclick="showHidePassword(this)"></div>
+            </div>
+
+            <label class="dialog-label" for="new-password-repeated">Повторите новый пароль</label>
+            <div class="password-input-wrapper">
+                <input class="dialog-input" id="new-password-repeated" type="password" name="new_password_repeated" required/>
+                <div class="show-hide-password" onclick="showHidePassword(this)"></div>
+            </div>
+        </form>
+
+        <div class="dialog-actions-wrapper">
+            <button class="dialog-button" onclick="saveNewPassword(this)">Сохранить</button>
+            <button class="dialog-button" onclick="closeWindow(this)">Отмена</button>
+        </div>
+    </dialog>
+
+    <dialog class="deleting-confirmation-window" id="deletingСonfirmation">
+        <div class="dialog-text">Уверены, что хотите удалить анкету?</div>
+        <div class="dialog-actions-wrapper">
+            <button class="dialog-button" onclick="removeCard(this)">Да</button>
+            <button class="dialog-button" onclick="closeWindow(this)">Отмена</button>
+        </div>
+    </dialog>
 
     <script src="../js/user_profile_script.js"></script>
 </body>

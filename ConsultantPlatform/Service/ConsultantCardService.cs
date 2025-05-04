@@ -1,13 +1,10 @@
 ﻿using ConsultantPlatform.Models.Entity;
-using Microsoft.EntityFrameworkCore; // Для Include, Sum и др.
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic; // Для List
-using System.Linq; // Для Where, Select, Sum
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-// Не нужно: using Microsoft.AspNetCore.Mvc;
-// Добавляем:
-using ConsultantPlatform.Models.DTO; // Для маппинга на ExperienceDTO (хотя маппинг лучше делать в контроллере или использовать AutoMapper)
 
 
 namespace ConsultantPlatform.Service
@@ -23,24 +20,23 @@ namespace ConsultantPlatform.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        // ----- ИЗМЕНЕНИЕ ЗДЕСЬ -----
+        /// <summary>
+        /// Получает все карточки консультантов с возможностью фильтрации, включая данные ментора и опыт.
+        /// </summary>
         public async Task<List<MentorCard>> GetConsultantCardsAsync(
             int? startPrice,
             int? endPrice,
-            // Меняем имя и тип параметра для ясности (или оставляем int?, если сравниваем целые годы)
             float? minTotalExperienceYears,
             string? fieldActivity)
         {
-            _logger.LogInformation("Retrieving consultant cards with filters: startPrice={startPrice}, endPrice={endPrice}, minTotalExperience={minTotalExperience}, fieldActivity={fieldActivity}",
+            _logger.LogInformation("Получение списка карточек консультантов с фильтрами: startPrice={startPrice}, endPrice={endPrice}, minTotalExperience={minTotalExperience}, fieldActivity={fieldActivity}",
                 startPrice, endPrice, minTotalExperienceYears, fieldActivity);
             try
             {
-                // Подгружаем Experiences для фильтрации и потенциально для DTO
                 var query = _context.MentorCards
                                     .Include(c => c.Experiences)
+                                    .Include(c => c.Mentor)
                                     .Include(c => c.MentorCardsCategories).ThenInclude(mc => mc.Category)
-                                    // Опционально: подгрузить ментора, если его имя нужно в DTO
-                                    // .Include(c => c.Mentor)
                                     .AsQueryable();
 
                 if (startPrice.HasValue)
@@ -49,199 +45,268 @@ namespace ConsultantPlatform.Service
                 if (endPrice.HasValue)
                     query = query.Where(c => c.PricePerHours <= endPrice.Value);
 
-                // --- Новая логика фильтрации по опыту ---
                 if (minTotalExperienceYears.HasValue)
                 {
-                    // Фильтруем по сумме DurationYears в связанных Experiences
-                    // Используем DefaultIfEmpty().Sum() чтобы избежать ошибки, если Experiences пустой (хотя Sum обычно возвращает 0)
-                    query = query.Where(c => c.Experiences.Select(e => e.DurationYears).DefaultIfEmpty(0).Sum() >= minTotalExperienceYears.Value);
-                    // Если параметр был int?, можно кастовать сумму:
-                    // query = query.Where(c => (int)c.Experiences.Select(e => e.DurationYears).DefaultIfEmpty(0).Sum() >= minTotalExperienceYears.Value);
+                    query = query.Where(c => c.Experiences.Sum(e => e.DurationYears) >= minTotalExperienceYears.Value);
                 }
 
                 if (!string.IsNullOrEmpty(fieldActivity))
                 {
-                    var categories = fieldActivity.Split(',').Select(c => c.Trim()).ToList();
-                    query = query.Where(m => m.MentorCardsCategories
-                                             .Any(mc => categories.Contains(mc.Category.Name)));
+                    var categories = fieldActivity.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim()).ToList();
+                    if (categories.Any())
+                    {
+                        query = query.Where(m => m.MentorCardsCategories
+                                                 .Any(mc => categories.Contains(mc.Category.Name)));
+                    }
                 }
 
                 var cards = await query.ToListAsync();
-                _logger.LogInformation("Found {CardCount} consultant cards matching criteria.", cards.Count);
+                _logger.LogInformation("Найдено {CardCount} карточек консультантов, соответствующих критериям.", cards.Count);
                 return cards;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving consultant cards");
-                // Оборачиваем в ApplicationException или позволяем оригинальному исключению всплыть
-                throw new ApplicationException("Error retrieving consultant cards", ex);
+                _logger.LogError(ex, "Ошибка при получении списка карточек консультантов");
+                throw new ApplicationException("Произошла ошибка при получении списка карточек консультантов.", ex);
             }
         }
 
-        // ----- ИЗМЕНЕНИЕ ЗДЕСЬ -----
-        public async Task<MentorCard?> GetConsultantCardAsync(Guid id) // Возвращаем nullable
+        /// <summary>
+        /// Получает конкретную карточку консультанта по ID, включая данные ментора и опыт.
+        /// </summary>
+        public async Task<MentorCard?> GetConsultantCardAsync(Guid id)
         {
-            _logger.LogInformation("Retrieving consultant card with ID {Id}", id);
+            _logger.LogInformation("Получение карточки консультанта с ID {Id}", id);
             try
             {
-                // Используем FirstOrDefaultAsync и Include для загрузки связанных данных
                 var consultantCard = await _context.MentorCards
-                                                   .Include(c => c.Experiences) // Загружаем опыт
-                                                   .Include(c => c.Mentor) // Загружаем ментора (для имени)
-                                                   .Include(c => c.MentorCardsCategories).ThenInclude(mcc => mcc.Category) // Загружаем категории
+                                                   .Include(c => c.Experiences)
+                                                   .Include(c => c.Mentor)
+                                                   .Include(c => c.MentorCardsCategories).ThenInclude(mcc => mcc.Category)
                                                    .FirstOrDefaultAsync(c => c.Id == id);
 
                 if (consultantCard == null)
                 {
-                    _logger.LogWarning("Consultant card with ID {Id} not found.", id);
-                    // Возвращаем null, контроллер вернет 404
+                    _logger.LogWarning("Карточка консультанта с ID {Id} не найдена.", id);
                     return null;
                 }
 
-                _logger.LogInformation("Consultant card with ID {Id} found.", id);
+                _logger.LogInformation("Карточка консультанта с ID {Id} найдена.", id);
                 return consultantCard;
             }
-            // Не ловим KeyNotFoundException, т.к. возвращаем null
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving consultant card with ID {Id}", id);
-                // Позволяем оригинальному исключению всплыть или оборачиваем
-                throw new ApplicationException($"Error retrieving consultant card with ID {id}", ex);
+                _logger.LogError(ex, "Ошибка при получении карточки консультанта с ID {Id}", id);
+                throw new ApplicationException($"Произошла ошибка при получении карточки консультанта с ID {id}", ex);
             }
         }
 
+        /// <summary>
+        /// Создает новую карточку консультанта (без данных об опыте и категориях).
+        /// </summary>
+        /// <remarks>Возвращает созданную сущность.</remarks>
         public async Task<MentorCard> CreateConsultantCardAsync(MentorCard card)
         {
-            // Этот метод не меняется напрямую.
-            // Важно: При вызове этого метода из контроллера,
-            // Убедитесь, что вы НЕ пытаетесь установить card.Experiences из DTO.
-            // Коллекция Experiences должна быть пустой при создании карточки,
-            // а записи опыта должны добавляться позже отдельными операциями.
             if (card == null)
             {
+                _logger.LogWarning("Вызов CreateConsultantCardAsync с нулевыми данными карточки.");
                 throw new ArgumentNullException(nameof(card));
             }
-            _logger.LogInformation("Creating new consultant card for Mentor {MentorId} with Title {Title}", card.MentorId, card.Title);
+            _logger.LogInformation("Создание новой карточки консультанта для Ментора {MentorId} с заголовком {Title}", card.MentorId, card.Title);
             try
             {
-                // Убедимся, что коллекция инициализирована, но пуста (если она null)
                 card.Experiences ??= new List<Experience>();
-                // Дополнительно можно явно очистить, если есть сомнения: card.Experiences.Clear();
+                card.MentorCardsCategories ??= new List<MentorCardsCategory>();
 
                 await _context.MentorCards.AddAsync(card);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Successfully created consultant card with ID {CardId}", card.Id);
+                _logger.LogInformation("Карточка консультанта с ID {CardId} успешно создана", card.Id);
+
                 return card;
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Database error creating consultant card for Mentor {MentorId}", card.MentorId);
-                throw new ApplicationException("Error saving the consultant card to the database.", ex);
+                _logger.LogError(ex, "Ошибка базы данных при создании карточки консультанта для Ментора {MentorId}", card.MentorId);
+                throw new ApplicationException("Ошибка сохранения карточки консультанта в базе данных.", ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error creating consultant card for Mentor {MentorId}", card.MentorId);
-                throw new ApplicationException("An unexpected error occurred while creating the consultant card.", ex);
+                _logger.LogError(ex, "Непредвиденная ошибка при создании карточки консультанта для Ментора {MentorId}", card.MentorId);
+                throw new ApplicationException("Произошла непредвиденная ошибка при создании карточки консультанта.", ex);
             }
         }
 
 
-        public async Task<MentorCard?> UpdateConsultantCardAsync(Guid cardId, MentorCard cardUpdateData, Guid currentUserId)
+        public async Task<MentorCard?> UpdateConsultantCardAsync(Guid cardId, MentorCard cardUpdateData, List<Experience> incomingExperiences, Guid currentUserId)
         {
-            // Этот метод ОБНОВЛЯЕТ ТОЛЬКО ОСНОВНЫЕ ПОЛЯ MentorCard.
-            // Он НЕ управляет коллекцией Experiences.
-            // Убедитесь, что cardUpdateData из контроллера НЕ содержит данных Experiences.
-
             if (cardUpdateData == null)
             {
-                _logger.LogWarning("UpdateConsultantCardAsync called with null card data.");
+                _logger.LogWarning("Вызов UpdateConsultantCardAsync с нулевыми данными карточки.");
                 throw new ArgumentNullException(nameof(cardUpdateData));
             }
+            incomingExperiences ??= new List<Experience>();
 
-            _logger.LogInformation("Attempting to update consultant card {CardId} by User {UserId}", cardId, currentUserId);
+            _logger.LogInformation("Попытка обновить карточку консультанта {CardId} (включая опыт) пользователем {UserId}", cardId, currentUserId);
 
             try
             {
-                // Используем FindAsync, так как нам НЕ нужны связанные Experiences для обновления основных полей
-                var existingCard = await _context.MentorCards.FindAsync(cardId);
+                var existingCard = await _context.MentorCards
+                                                 .Include(c => c.Experiences)
+                                                 .FirstOrDefaultAsync(c => c.Id == cardId);
+
 
                 if (existingCard == null)
                 {
-                    _logger.LogWarning("Attempted to update non-existent consultant card with ID {CardId}", cardId);
+                    _logger.LogWarning("Попытка обновить несуществующую карточку консультанта с ID {CardId}", cardId);
                     return null;
                 }
 
                 if (existingCard.MentorId != currentUserId)
                 {
-                    _logger.LogWarning("User {UserId} attempted to update consultant card {CardId} owned by {OwnerId}. Access denied.", currentUserId, cardId, existingCard.MentorId);
-                    throw new UnauthorizedAccessException("User is not authorized to modify this consultant card.");
+                    _logger.LogWarning("Пользователь {UserId} попытался обновить карточку консультанта {CardId}, принадлежащую пользователю {OwnerId}. Доступ запрещен.", currentUserId, cardId, existingCard.MentorId);
+                    throw new UnauthorizedAccessException("Пользователь не авторизован для изменения этой карточки консультанта.");
                 }
 
-                // Обновляем только поля из cardUpdateData, которые относятся к MentorCard
                 existingCard.Title = cardUpdateData.Title;
                 existingCard.Description = cardUpdateData.Description;
                 existingCard.PricePerHours = cardUpdateData.PricePerHours;
-                // НЕ трогаем existingCard.Experiences
 
+                var existingExperiencesDict = existingCard.Experiences.ToDictionary(e => e.Id);
+                var incomingExperiencesWithIdsDict = incomingExperiences.Where(e => e.Id != Guid.Empty).ToDictionary(e => e.Id);
+
+                var experiencesToDelete = existingCard.Experiences
+                    .Where(existingExp => !incomingExperiencesWithIdsDict.ContainsKey(existingExp.Id))
+                    .ToList();
+
+                foreach (var expToDelete in experiencesToDelete)
+                {
+                    _context.Experiences.Remove(expToDelete);
+                }
+                foreach (var incomingExp in incomingExperiences)
+                {
+                    if (incomingExp.Id == Guid.Empty)
+                    {
+                        incomingExp.Id = Guid.NewGuid();
+                        incomingExp.MentorCardId = existingCard.Id;
+                        existingCard.Experiences.Add(incomingExp);
+                        _context.Entry(incomingExp).State = EntityState.Added;
+                    }
+                    else
+                    {
+                        if (existingExperiencesDict.TryGetValue(incomingExp.Id, out var existingExp))
+                        {
+                            if (existingExp.MentorCardId != cardId)
+                            {
+                                _logger.LogError("Попытка обновить запись опыта {ExpId}, принадлежащую карточке {ExistingCardId}, через обновление карточки {CardId}. Несоответствие ID карточек.", incomingExp.Id, existingExp.MentorCardId, cardId);
+                                throw new ApplicationException($"Запись опыта с ID {incomingExp.Id} не принадлежит карточке консультанта с ID {cardId}.");
+                            }
+                            existingExp.CompanyName = incomingExp.CompanyName;
+                            existingExp.Position = incomingExp.Position;
+                            existingExp.DurationYears = incomingExp.DurationYears;
+                            existingExp.Description = incomingExp.Description;
+                            _context.Entry(existingExp).State = EntityState.Modified;
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Попытка обновить несуществующую запись опыта с ID {ExpId} для карточки {CardId} пользователем {UserId}.", incomingExp.Id, cardId, currentUserId);
+                            throw new ApplicationException($"Запись опыта с ID {incomingExp.Id} не найдена для карточки консультанта с ID {cardId}.");
+                        }
+                    }
+                }
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Successfully updated consultant card {CardId} by User {UserId}", cardId, currentUserId);
+                _logger.LogInformation("Карточка консультанта {CardId} и связанные записи опыта успешно обновлены пользователем {UserId}.", cardId, currentUserId);
 
                 return existingCard;
             }
-            catch (UnauthorizedAccessException) { throw; }
-            catch (DbUpdateConcurrencyException ex) { /* ... обработка ... */  throw new Exception("Failed to update card due to a concurrency conflict. Please try again.", ex); }
-            catch (DbUpdateException ex) { /* ... обработка ... */ throw new ApplicationException("Error saving card changes to the database.", ex); }
-            catch (Exception ex) { /* ... обработка ... */ throw new Exception("An unexpected error occurred while updating the consultant card.", ex); }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+            catch (ApplicationException)
+            {
+                throw;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Конфликт параллелизма при обновлении карточки консультанта {CardId} (включая опыт) пользователем {UserId}.", cardId, currentUserId);
+                throw new ApplicationException("Не удалось обновить карточку из-за конфликта параллелизма. Попробуйте снова.", ex);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Ошибка базы данных при обновлении карточки консультанта {CardId} (включая опыт) пользователем {UserId}.", cardId, currentUserId);
+                throw new ApplicationException("Ошибка сохранения изменений карточки и опыта в базе данных.", ex);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Непредвиденная ошибка при обновлении карточки консультанта {CardId} (включая опыт) пользователем {UserId}.", cardId, currentUserId);
+                throw new ApplicationException("Произошла непредвиденная ошибка при обновлении карточки консультанта и опыта.", ex);
+            }
         }
 
+        /// <summary>
+        /// Удаляет карточку консультанта. Проверяет владение. Каскадное удаление опыта настроено в модели/БД.
+        /// </summary>
         public async Task<bool> DeleteConsultantCardAsync(Guid cardId, Guid currentUserId)
         {
-            // Этот метод удаляет MentorCard. Если в БД настроено ON DELETE CASCADE,
-            // связанные записи Experience будут удалены автоматически.
-            // Никаких изменений в логике этого метода не требуется.
-            _logger.LogInformation("Attempting to delete consultant card {CardId} by User {UserId}", cardId, currentUserId);
+            _logger.LogInformation("Попытка удалить карточку консультанта {CardId} пользователем {UserId}", cardId, currentUserId);
             try
             {
                 var existingCard = await _context.MentorCards.FindAsync(cardId);
-                if (existingCard == null) { /* ... обработка ... */ return false; }
-                if (existingCard.MentorId != currentUserId) { /* ... обработка ... */ throw new UnauthorizedAccessException("User is not authorized to delete this consultant card."); }
+                if (existingCard == null)
+                {
+                    _logger.LogWarning("Попытка удалить несуществующую карточку консультанта с ID {CardId}", cardId);
+                    return false;
+                }
+
+                if (existingCard.MentorId != currentUserId)
+                {
+                    _logger.LogWarning("Пользователь {UserId} попытался удалить карточку консультанта {CardId}, принадлежащую пользователю {OwnerId}. Доступ запрещен.", currentUserId, cardId, existingCard.MentorId);
+                    throw new UnauthorizedAccessException("Пользователь не авторизован для удаления этой карточки консультанта.");
+                }
 
                 _context.MentorCards.Remove(existingCard);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Successfully deleted consultant card {CardId} by User {UserId}", cardId, currentUserId);
+                _logger.LogInformation("Карточка консультанта с ID {CardId} успешно удалена пользователем {UserId}", cardId, currentUserId);
                 return true;
             }
-            catch (UnauthorizedAccessException) { throw; }
-            catch (DbUpdateException ex) { /* ... обработка ... */ throw new ApplicationException("Error deleting the consultant card from the database.", ex); }
-            catch (Exception ex) { /* ... обработка ... */ throw new Exception("An unexpected error occurred while deleting the consultant card.", ex); }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Ошибка базы данных при удалении карточки консультанта {CardId} пользователем {UserId}.", cardId, currentUserId);
+                throw new ApplicationException("Ошибка удаления карточки консультанта из базы данных.", ex);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Непредвиденная ошибка при удалении карточки консультанта {CardId} пользователем {UserId}.", cardId, currentUserId);
+                throw new ApplicationException("Произошла непредвиденная ошибка при удалении карточки консультанта.", ex);
+            }
         }
 
-        // GetMentorCardsByUserIdAsync - нужно добавить Include, если Experiences нужны в DTO
+        /// <summary>
+        /// Получает список карточек консультанта, созданных конкретным пользователем, включая данные ментора и опыт.
+        /// </summary>
         public async Task<List<MentorCard>> GetMentorCardsByUserIdAsync(Guid mentorId)
         {
-            _logger.LogInformation("Attempting to retrieve mentor cards for User ID {MentorId}", mentorId);
+            _logger.LogInformation("Попытка получить карточки ментора для пользователя с ID {MentorId}", mentorId);
             try
             {
                 var cards = await _context.MentorCards
                                         .Where(mc => mc.MentorId == mentorId)
-                                        .Include(mc => mc.Experiences) // Добавляем Include для Experiences
-                                                                       // .Include(mc => mc.MentorCardsCategories).ThenInclude(mcc => mcc.Category) // Если категории нужны
+                                        .Include(mc => mc.Experiences)
+                                        .Include(mc => mc.Mentor)
                                         .ToListAsync();
 
-                _logger.LogInformation("Found {CardCount} mentor cards for User ID {MentorId}", cards.Count, mentorId);
+                _logger.LogInformation("Найдено {CardCount} карточек ментора для пользователя с ID {MentorId}", cards.Count, mentorId);
                 return cards;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving mentor cards for User ID {MentorId}", mentorId);
-                throw new ApplicationException($"An error occurred while retrieving cards for mentor {mentorId}", ex);
+                _logger.LogError(ex, "Ошибка при получении карточек ментора для пользователя с ID {MentorId}", mentorId);
+                throw new ApplicationException($"Произошла ошибка при получении карточек для ментора {mentorId}", ex);
             }
         }
-
-        // --- НЕОБХОДИМЫ НОВЫЕ МЕТОДЫ для управления Experience ---
-        // Например:
-        // public async Task<Experience> AddExperienceToCardAsync(Guid cardId, Experience newExperience, Guid currentUserId) { ... }
-        // public async Task<bool> DeleteExperienceAsync(Guid experienceId, Guid currentUserId) { ... }
-        // public async Task<Experience?> UpdateExperienceAsync(Guid experienceId, Experience experienceUpdateData, Guid currentUserId) { ... }
     }
 }
