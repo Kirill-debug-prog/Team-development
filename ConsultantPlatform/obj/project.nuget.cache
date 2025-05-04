@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "ghnQzIdXwcM=",
+  "dgSpecHash": "gmBCVKs2S4k=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Роман\\Source\\Repos\\Team-development\\ConsultantPlatform\\ConsultantPlatform.csproj",
+  "projectFilePath": "C:\\Users\\Роман\\source\\repos\\Team-development\\ConsultantPlatform\\ConsultantPlatform.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Роман\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Роман\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.0\\microsoft.aspnetcore.authentication.jwtbearer.8.0.0.nupkg.sha512",

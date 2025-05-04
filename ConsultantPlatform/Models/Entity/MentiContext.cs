@@ -159,6 +159,8 @@ public partial class MentiContext : DbContext
             entity.Property(e => e.Login).HasMaxLength(200);
             entity.Property(e => e.MiddleName).HasMaxLength(200);
             entity.Property(e => e.Password).HasMaxLength(200);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+            entity.Property(e => e.Email).HasMaxLength(200);
         });
 
         OnModelCreatingPartial(modelBuilder);

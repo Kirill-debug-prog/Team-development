@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-
+using System; // Убедитесь, что добавлено System для DateTime
 
 [ApiController]
 [Route("api/auth")]
@@ -22,6 +22,37 @@ public class AuthController : ControllerBase
         _userService = userService;
         _config = config;
     }
+
+    // Приватный метод для генерации JWT и объекта ответа
+    private object GenerateJwtTokenResponse(User user)
+    {
+        // 2. Создаём клеймы (данные, которые будем хранить в токене)
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // ID пользователя
+            new Claim(ClaimTypes.Name, user.Login),
+            // Добавьте другие клеймы, если нужно (например, роли)
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        // 4. Генерируем токен
+        var token = new JwtSecurityToken(
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(6), // Срок действия
+            signingCredentials: creds
+        );
+
+        return new
+        {
+            Token = new JwtSecurityTokenHandler().WriteToken(token),
+            Expires = token.ValidTo
+        };
+    }
+
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDTO model)
@@ -44,30 +75,8 @@ public class AuthController : ControllerBase
             return BadRequest(new { Message = "Invalid password" });
         }
 
-        // 2. Создаём клеймы (данные, которые будем хранить в токене)
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, existingUser.Id.ToString()),  // ID пользователя
-            new Claim(ClaimTypes.Name, existingUser.Login),
-        };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        // 4. Генерируем токен
-        var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(6), // Срок действия
-            signingCredentials: creds
-        );
-
-        return Ok(new
-        {
-            Token = new JwtSecurityTokenHandler().WriteToken(token),
-            Expires = token.ValidTo
-        });
+        // Используем приватный метод для генерации токена и ответа
+        return Ok(GenerateJwtTokenResponse(existingUser));
     }
 
     [HttpPost("register")]
@@ -98,22 +107,32 @@ public class AuthController : ControllerBase
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 MiddleName = model.MiddleName,
+                PhoneNumber = model.PhoneNumber,
+                Email = model.Email
             };
 
-            // **Хешируем пароль перед сохранением**
             user.Password = _passwordHasher.HashPassword(user, model.Password);
 
             var createdUser = await _userService.CreateUser(user);
 
+            if (createdUser == null)
+            {
+                 Console.Error.WriteLine($"Failed to create user for login: {model.Login}");
+                 return StatusCode(500, "Failed to create user during registration");
+            }
+
+            var tokenResponse = GenerateJwtTokenResponse(createdUser);
+
             return Ok(new
             {
-                Message = "Registration successful",
-                User = createdUser,
+                Message = "Registration successful and logged in",
+                tokenResponse
             });
+
         }
         catch (Exception ex)
         {
-            Console.Write(ex.ToString());
+            Console.Error.WriteLine($"Error during registration: {ex.ToString()}");
             return StatusCode(500, "An error occurred during registration");
         }
     }
