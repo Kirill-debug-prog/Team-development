@@ -70,7 +70,9 @@ namespace ConsultantPlatform.Controllers
                     Login = user.Login,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
-                    MiddleName = user.MiddleName
+                    MiddleName = user.MiddleName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
                 };
                 _logger.LogInformation("Профиль для пользователя {UserId} успешно получен.", userId);
                 return Ok(userProfileDto);
@@ -125,7 +127,10 @@ namespace ConsultantPlatform.Controllers
                     Login = updatedUser.Login,
                     FirstName = updatedUser.FirstName,
                     LastName = updatedUser.LastName,
-                    MiddleName = updatedUser.MiddleName
+                    MiddleName = updatedUser.MiddleName,
+                    Email = updatedUser.Email,
+                    PhoneNumber = updatedUser.PhoneNumber,
+
                 };
                 _logger.LogInformation("Профиль для пользователя {UserId} успешно обновлен.", userId);
                 return Ok(userProfileDto);
@@ -224,7 +229,6 @@ namespace ConsultantPlatform.Controllers
                     Title = mc.Title,
                     Description = mc.Description,
                     MentorId = mc.MentorId,
-                    // Формируем полное имя ментора из загруженных данных
                     MentorFullName = $"{mc.Mentor?.LastName ?? ""} {mc.Mentor?.FirstName ?? ""} {mc.Mentor?.MiddleName ?? ""}".Trim(),
                     PricePerHours = mc.PricePerHours,
                     Experiences = mc.Experiences?.Select(exp => new ExperienceDTO

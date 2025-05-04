@@ -23,26 +23,22 @@ public class AuthController : ControllerBase
         _config = config;
     }
 
-    // Приватный метод для генерации JWT и объекта ответа
     private object GenerateJwtTokenResponse(User user)
     {
-        // 2. Создаём клеймы (данные, которые будем хранить в токене)
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // ID пользователя
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Login),
-            // Добавьте другие клеймы, если нужно (например, роли)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        // 4. Генерируем токен
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(6), // Срок действия
+            expires: DateTime.UtcNow.AddHours(6),
             signingCredentials: creds
         );
 
@@ -61,21 +57,16 @@ public class AuthController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-
         var existingUser = await _userService.GetUserByLogin(model.Login);
         if (existingUser == null)
         {
             return BadRequest(new { Message = "User doesn't exist" });
         }
-
-        // **Проверяем хеш пароля**
         var result = _passwordHasher.VerifyHashedPassword(existingUser, existingUser.Password, model.Password);
         if (result != PasswordVerificationResult.Success)
         {
             return BadRequest(new { Message = "Invalid password" });
         }
-
-        // Используем приватный метод для генерации токена и ответа
         return Ok(GenerateJwtTokenResponse(existingUser));
     }
 
@@ -107,8 +98,8 @@ public class AuthController : ControllerBase
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 MiddleName = model.MiddleName,
-                PhoneNumber = model.PhoneNumber,
-                Email = model.Email
+                Email = model.Email,
+                PhoneNumber = model.PhoneNumber
             };
 
             user.Password = _passwordHasher.HashPassword(user, model.Password);
