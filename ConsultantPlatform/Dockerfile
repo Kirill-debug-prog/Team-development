@@ -7,7 +7,7 @@ RUN dotnet restore "./ConsultantPlatform.csproj"
 
 COPY . .
 
-RUN dotnet publish "ConsultantPlatform.csproj" -c Release -o /app/publish
+RUN dotnet publish "ConsultantPlatform.csproj" -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
