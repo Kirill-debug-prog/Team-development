@@ -144,118 +144,87 @@ namespace ConsultantPlatform.Service
                 _logger.LogWarning("Вызов UpdateConsultantCardAsync с нулевыми данными карточки.");
                 throw new ArgumentNullException(nameof(cardUpdateData));
             }
-            // Если список опыта не пришел, считаем, что опыт нужно удалить или его нет
             incomingExperiences ??= new List<Experience>();
 
             _logger.LogInformation("Попытка обновить карточку консультанта {CardId} (включая опыт) пользователем {UserId}", cardId, currentUserId);
 
             try
             {
-                // Находим карточку и ОБЯЗАТЕЛЬНО подгружаем связанные Experiences
                 var existingCard = await _context.MentorCards
-                                                 .Include(c => c.Experiences) // Подгружаем опыт
-                                                                              // В UpdateConsultantCardAsync нам не нужен Mentor для бизнес-логики,
-                                                                              // поэтому его не подгружаем здесь, чтобы не утяжелять запрос.
-                                                                              // Контроллер получит Mentor через GetConsultantCardAsync для формирования DTO.
+                                                 .Include(c => c.Experiences)
                                                  .FirstOrDefaultAsync(c => c.Id == cardId);
 
 
                 if (existingCard == null)
                 {
                     _logger.LogWarning("Попытка обновить несуществующую карточку консультанта с ID {CardId}", cardId);
-                    return null; // Карточка не найдена
+                    return null;
                 }
 
-                // Проверка владения
                 if (existingCard.MentorId != currentUserId)
                 {
                     _logger.LogWarning("Пользователь {UserId} попытался обновить карточку консультанта {CardId}, принадлежащую пользователю {OwnerId}. Доступ запрещен.", currentUserId, cardId, existingCard.MentorId);
                     throw new UnauthorizedAccessException("Пользователь не авторизован для изменения этой карточки консультанта.");
                 }
 
-                // --- Обновление основных полей карточки ---
                 existingCard.Title = cardUpdateData.Title;
                 existingCard.Description = cardUpdateData.Description;
                 existingCard.PricePerHours = cardUpdateData.PricePerHours;
 
-                // --- Обновление записей опыта (стратегия: синхронизация по ID) ---
-
-                // Создаем словари для быстрого поиска существующих и входящих записей по ID
                 var existingExperiencesDict = existingCard.Experiences.ToDictionary(e => e.Id);
-                // Фильтруем входящие, оставляя только те, что с ненулевым ID (считаем их существующими для обновления/удаления)
                 var incomingExperiencesWithIdsDict = incomingExperiences.Where(e => e.Id != Guid.Empty).ToDictionary(e => e.Id);
 
-
-                // 1. Определяем и удаляем записи, которые есть в БД, но отсутствуют во входящем списке (с ID)
                 var experiencesToDelete = existingCard.Experiences
                     .Where(existingExp => !incomingExperiencesWithIdsDict.ContainsKey(existingExp.Id))
-                    .ToList(); // ToList() необходим перед удалением из отслеживаемой коллекции
+                    .ToList();
 
                 foreach (var expToDelete in experiencesToDelete)
                 {
                     _context.Experiences.Remove(expToDelete);
                 }
-
-                // 2. Обрабатываем входящие записи (добавление новых или обновление существующих)
                 foreach (var incomingExp in incomingExperiences)
                 {
                     if (incomingExp.Id == Guid.Empty)
                     {
-                        // Это НОВАЯ запись опыта (нет ID)
-                        // Генерируем новый ID и связываем с карточкой
                         incomingExp.Id = Guid.NewGuid();
                         incomingExp.MentorCardId = existingCard.Id;
-                        existingCard.Experiences.Add(incomingExp); // Добавляем в коллекцию отслеживаемой сущности
-                        // EF Core увидит ее как новую благодаря state по умолчанию после Add
-                        _context.Entry(incomingExp).State = EntityState.Added; // Явно указываем, чтобы быть уверенными
+                        existingCard.Experiences.Add(incomingExp);
+                        _context.Entry(incomingExp).State = EntityState.Added;
                     }
                     else
                     {
-                        // Это существующая запись опыта (есть ID)
                         if (existingExperiencesDict.TryGetValue(incomingExp.Id, out var existingExp))
                         {
-                            // Нашли соответствующую запись в базе данных для обновления
-                            // Проверяем, что ID карточки совпадает (нельзя перепривязать опыт к другой карточке через это обновление)
                             if (existingExp.MentorCardId != cardId)
                             {
-                                // Этот сценарий не должен происходить при нормальной работе, т.к. опыт уже связан с карточкой.
-                                // Но на всякий случай: если ID опыта корректный, но он привязан к *другой* карточке
                                 _logger.LogError("Попытка обновить запись опыта {ExpId}, принадлежащую карточке {ExistingCardId}, через обновление карточки {CardId}. Несоответствие ID карточек.", incomingExp.Id, existingExp.MentorCardId, cardId);
                                 throw new ApplicationException($"Запись опыта с ID {incomingExp.Id} не принадлежит карточке консультанта с ID {cardId}.");
                             }
-
-                            // Обновляем свойства существующей сущности данными из входящей
                             existingExp.CompanyName = incomingExp.CompanyName;
                             existingExp.Position = incomingExp.Position;
                             existingExp.DurationYears = incomingExp.DurationYears;
                             existingExp.Description = incomingExp.Description;
-                            // MentorCardId и Id не меняются
-                            _context.Entry(existingExp).State = EntityState.Modified; // Явно указываем, чтобы быть уверенными
+                            _context.Entry(existingExp).State = EntityState.Modified;
                         }
                         else
                         {
-                            // Входящая запись имеет ID, но такого ID нет среди существующих записей опыта ДЛЯ ЭТОЙ КАРТОЧКИ
-                            // Это ошибка клиента или попытка передать чужой ID опыта.
                             _logger.LogWarning("Попытка обновить несуществующую запись опыта с ID {ExpId} для карточки {CardId} пользователем {UserId}.", incomingExp.Id, cardId, currentUserId);
-                            throw new ApplicationException($"Запись опыта с ID {incomingExp.Id} не найдена для карточки консультанта с ID {cardId}."); // Бросаем исключение для 404/400
+                            throw new ApplicationException($"Запись опыта с ID {incomingExp.Id} не найдена для карточки консультанта с ID {cardId}.");
                         }
                     }
                 }
-
-                // 3. Сохраняем все изменения (удаление, добавление, обновление) одной транзакцией
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Карточка консультанта {CardId} и связанные записи опыта успешно обновлены пользователем {UserId}.", cardId, currentUserId);
 
-                // Возвращаем отслеживаемую сущность. EF Core обновил ее локальную коллекцию Experiences.
                 return existingCard;
             }
             catch (UnauthorizedAccessException)
             {
-                throw; // Пробрасываем ошибку авторизации
+                throw;
             }
-            catch (ApplicationException) // Ловим наши специфичные ошибки (не найдено, несовпадение ID)
+            catch (ApplicationException)
             {
-                throw; // Пробрасываем дальше
+                throw;
             }
             catch (DbUpdateConcurrencyException ex)
             {
