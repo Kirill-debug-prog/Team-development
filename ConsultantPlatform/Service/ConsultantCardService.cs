@@ -47,7 +47,7 @@ namespace ConsultantPlatform.Service
 
                 if (minTotalExperienceYears.HasValue)
                 {
-                    query = query.Where(c => c.Experiences.Select(e => e.DurationYears).DefaultIfEmpty(0).Sum() >= minTotalExperienceYears.Value);
+                    query = query.Where(c => c.Experiences.Sum(e => e.DurationYears) >= minTotalExperienceYears.Value);
                 }
 
                 if (!string.IsNullOrEmpty(fieldActivity))
