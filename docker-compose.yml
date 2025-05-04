@@ -41,8 +41,9 @@ services:
 
   # Сервис веб-сервера Nginx (отдает фронтенд и проксирует на бэкенд)
   nginx:
-    context: .  # <--- Контекст сборки - корень проекта
-    dockerfile: ./nginx/Dockerfile # <--- Путь к Dockerfile от корня
+    build:
+      context: .  # <--- Контекст сборки - корень проекта
+      dockerfile: ./nginx/Dockerfile # <--- Путь к Dockerfile от корня
     restart: always
     ports:
       - "80:80" # Пробрасываем порт 80 с хоста на порт 80 контейнера Nginx
