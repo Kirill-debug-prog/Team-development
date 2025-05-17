@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ConsultantPlatform.Models.DTO
 {
-    public class ConsultantCardDTO
+    public class MentorCardDTO
     {
         public Guid Id { get; set; }
 
@@ -25,8 +25,6 @@ namespace ConsultantPlatform.Models.DTO
 
         public List<ExperienceDTO> Experiences { get; set; } = new List<ExperienceDTO>();
 
-        // Вот это ключевое поле для отправки полной информации о категориях клиенту
         public List<CategoryDTO> Categories { get; set; } = new List<CategoryDTO>();
-        // CategoryDTO содержит { int Id, string Name }
     }
 }

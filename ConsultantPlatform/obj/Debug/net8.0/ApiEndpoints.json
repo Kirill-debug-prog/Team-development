@@ -103,7 +103,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[ConsultantPlatform.Models.DTO.ConsultantCardDTO, ConsultantPlatform, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[ConsultantPlatform.Models.DTO.MentorCardDTO, ConsultantPlatform, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "application/json"
         ],
@@ -132,7 +132,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "ConsultantPlatform.Models.DTO.ConsultantCardDTO",
+        "Type": "ConsultantPlatform.Models.DTO.MentorCardDTO",
         "MediaTypes": [
           "application/json"
         ],
@@ -175,7 +175,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "ConsultantPlatform.Models.DTO.ConsultantCardDTO",
+        "Type": "ConsultantPlatform.Models.DTO.MentorCardDTO",
         "MediaTypes": [
           "application/json"
         ],
@@ -210,20 +210,20 @@
       },
       {
         "Name": "cardDto",
-        "Type": "ConsultantPlatform.Models.DTO.ConsultantCardDTO",
+        "Type": "ConsultantPlatform.WebApp.Models.DTOs.CreateMentorCardDTO",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "ConsultantPlatform.Models.DTO.ConsultantCardDTO",
+        "Type": "ConsultantPlatform.Models.DTO.MentorCardDTO",
         "MediaTypes": [
           "application/json"
         ],
         "StatusCode": 200
       },
       {
-        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
+        "Type": "System.Object",
         "MediaTypes": [
           "application/json"
         ],
@@ -237,7 +237,7 @@
         "StatusCode": 401
       },
       {
-        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
+        "Type": "System.Object",
         "MediaTypes": [
           "application/json"
         ],
@@ -251,8 +251,10 @@
         "StatusCode": 404
       },
       {
-        "Type": "System.Void",
-        "MediaTypes": [],
+        "Type": "System.Object",
+        "MediaTypes": [
+          "application/json"
+        ],
         "StatusCode": 500
       }
     ]
@@ -450,7 +452,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[ConsultantPlatform.Models.DTO.ConsultantCardDTO, ConsultantPlatform, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[ConsultantPlatform.Models.DTO.MentorCardDTO, ConsultantPlatform, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "application/json"
         ],

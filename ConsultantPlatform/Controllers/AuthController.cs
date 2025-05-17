@@ -98,8 +98,8 @@ public class AuthController : ControllerBase
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 MiddleName = model.MiddleName,
-                Email = model.Email,
-                PhoneNumber = model.PhoneNumber
+                Email = "",
+                PhoneNumber = "",
             };
 
             user.Password = _passwordHasher.HashPassword(user, model.Password);
