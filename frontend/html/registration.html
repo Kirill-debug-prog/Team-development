@@ -18,19 +18,19 @@
                 <form class="form" novalidate data-js-form>
                     <div class="field">
                         <label class="visually-hidden" for="second_name">Фамилия</label>
-                        <input class="form-input" id="second_name" placeholder="Фамилия" type="text" name="lastName" required minlength="2" maxlength="50"/>  
+                        <input class="form-input" id="second_name" placeholder="Фамилия" type="text" name="lastName" required minlength="2" maxlength="50" pattern="^[a-zA-Zа-яА-Я \-]+$"/>  
                         <span class="field-errors" data-js-form-field-errors></span>
                     </div>
                     
                     <div class="field">
                         <label class="visually-hidden" for="name">Имя</label>
-                        <input class="form-input" id="name" placeholder="Имя" type="text" name="firstName" required minlength="2" maxlength="50"/>
+                        <input class="form-input" id="name" placeholder="Имя" type="text" name="firstName" required minlength="2" maxlength="50" pattern="^[a-zA-Zа-яА-Я \-]+$"/>
                         <span class="field-errors" data-js-form-field-errors></span>
                     </div>
                     
                     <div class="field">
                         <label class="visually-hidden" for="patronymic">Отчество</label>
-                        <input class="form-input" id="patronymic" placeholder="Отчество" type="text" name="middleName" minlength="0" maxlength="50"/>                    
+                        <input class="form-input" id="patronymic" placeholder="Отчество" type="text" name="middleName" minlength="0" maxlength="50" pattern="^[a-zA-Zа-яА-Я \-]+$"/>                    
                         <span class="field-errors" data-js-form-field-errors></span>
                     </div>
 

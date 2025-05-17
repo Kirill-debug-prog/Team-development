@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", async() => {
     
  });
 
-
 function setUserName() {
     const lastNameElements = document.querySelectorAll('span.last-name');
     lastNameElements.forEach((lastNameElement) => {
@@ -35,7 +34,6 @@ function redirectToLogin() {
     window.location.href = './login.html';
 }
 
-
 function getCookie(name) {
   for (const entryStr of document.cookie.split('; ')) {
     const [entryName, entryValue] = entryStr.split('=');
@@ -45,7 +43,6 @@ function getCookie(name) {
     }
   }
 }
-
 
 async function loadUserCards() {
     try {
@@ -78,7 +75,6 @@ async function loadUserCards() {
         throw error;
     }
 }
-
 
 function addCards(userCardsData) {
     const cardList = document.querySelector('.card-list');
@@ -118,13 +114,13 @@ function addCards(userCardsData) {
                 
                 <div class="card-footer">
                     <div class="card-price">${pricePerHours} руб.</div>
-                    <a class="show-full-card-button" href="./mentor_card.html">
+                    <a class="show-full-card-button" href="./mentor_card.html?id=${id}">
                         Подробнее...
                     </a>
                 </div>
 
                 <div class="card-actions-wrapper">
-                    <a href="./modify_card.html" class="transparent-button">Редактировать</a>
+                    <a href="./modify_card.html?id=${id}" class="transparent-button">Редактировать</a>
                     <button class="transparent-button delete-card-button" type="button">Удалить</button>
                 </div>                                          
             `;
@@ -133,21 +129,6 @@ function addCards(userCardsData) {
         });
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -172,11 +153,52 @@ function modifyUserWindow() {
     modifyingUserInfo.querySelector('input#last-name').blur(); // убираем фокус с 1го поля
 
     document.querySelector('.dialog-user-avatar').setAttribute("src", "../images/default_user_photo.jpg");
+    formsValidation.bindEvents(modifyingUserInfo);
 }
 
 function saveNewUserInfo(button) {
-    closeWindow(button);
-    //...
+    if (formsValidation.isFormValid()) {
+        changeUserInfoRequest(button);
+    }
+}
+
+function changeUserInfoRequest(button) {
+    const formElement = document.querySelector('[data-modify-user-info-form]');
+	const formData = new FormData(formElement);
+	const formDataObject = Object.fromEntries(formData);
+    const token = getCookie('token');
+
+	fetch('http://89.169.3.43/api/users/me', {
+		method: 'put',
+		headers: {
+			'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+		},
+		body: JSON.stringify({...formDataObject})
+	})
+	.then(async (response) => {
+		if (response.status === 401) {
+            redirectToLogin();
+            return;
+
+        } else if (!response.ok) {
+            const json = await response.json();
+            throw new Error();
+        
+        } else {
+            closeWindow(button);
+            showingSuccess.showModal();
+
+            localStorage.setItem('firstName',`${formDataObject.firstName}`);
+		    localStorage.setItem('lastName',`${formDataObject.lastName}`);
+		    localStorage.setItem('patronymic',`${formDataObject.middleName}`);
+            setUserName();
+        }
+	})
+	.catch((error) => {
+		const formErrorsElement = formElement.querySelector("[data-js-form-errors]");
+		formErrorsElement.innerHTML = 'Ошибка. Повторите попытку';
+	})
 }
 
 const avatarInputElement = document.querySelector('#avatar');
@@ -212,12 +234,14 @@ avatarInputElement.addEventListener('change', (event) => {
 });
 
 
+
 // класс валидации для форм в обоих окнах
 class FormsValidation {
 	currentWindow;
 	
 	errorMessages = {
 		valueMissing: () => 'Поле обязательно для заполнения',
+        patternMismatch: () => 'Данные не соответствуют фомату',
 		tooShort: ({ minLength }) => `Минимальное количество символов - ${minLength}`,
 		tooLong: ({ maxLength }) => `Максимальное количество символов - ${maxLength}`
 	}
@@ -255,14 +279,11 @@ class FormsValidation {
 
 	onInput(event) {
 		const { target } = event;
-
-		if (target.required) {
-			this.validateField(target);
-		}
+		this.validateField(target);
 	}
 
 	isFormValid() {
-        const inputElements = this.currentWindow.querySelectorAll(".dialog-input[required]");
+        const inputElements = this.currentWindow.querySelectorAll(".dialog-input");
 		let isFormValid = true;
 		let firstInvalidFieldControl = null;
 
@@ -315,7 +336,6 @@ function modifyPasswordWindow() {
     formsValidation.bindEvents(modifyingPassword);
 }
 
-
 function saveNewPassword(button) {
     if (formsValidation.isFormValid()) {
         changePasswordRequest(button);
@@ -332,11 +352,6 @@ function showHidePassword(target){
         target.classList.remove('to-hide');
 	}
 }
-
-
-
-
-
 
 function changePasswordRequest(button) {
 	const formElement = document.querySelector('[data-modify-password-form]');
@@ -374,45 +389,6 @@ function changePasswordRequest(button) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // закрытие, для всех окон
 function closeWindow(closeButton) {
     let dialogWindow = closeButton.closest('dialog');
@@ -420,7 +396,7 @@ function closeWindow(closeButton) {
         dialogWindow.close();
     }
 
-    if (dialogWindow.matches('.modify-password-window')) {
+    if (dialogWindow.matches('#modifyingPassword')) {
         inputs = dialogWindow.querySelectorAll('input');
         inputs.forEach((input) => {
             input.value = '';
@@ -438,6 +414,15 @@ function closeWindow(closeButton) {
         })
 
         formsValidation.unbindEvents(modifyingPassword);
+    }
+
+    if (dialogWindow.matches('#modifyingUserInfo')) {
+        errorMessages = dialogWindow.querySelectorAll('.field-errors, .form-errors');
+        errorMessages.forEach((errorMessage) => {
+            errorMessage.innerHTML = '';
+        })
+
+        formsValidation.unbindEvents(modifyingUserInfo);
     }
 }
 

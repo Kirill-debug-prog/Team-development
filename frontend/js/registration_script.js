@@ -74,9 +74,8 @@ class FormsValidation {
 	onInput(event) {
 		const { target } = event;
 		const isFormField = target.closest(this.selectors.form);
-		const isRequired = target.required;
 
-		if (isFormField && isRequired) {
+		if (isFormField) {
 			this.validateField(target);
 		}
 
@@ -92,11 +91,11 @@ class FormsValidation {
 			return;
 		}
 
-		const requiredControlElements = [...event.target.elements].filter(({ required }) => required);
+		const controlElements = event.target.querySelectorAll('input');
 		let isFormValid = true;
 		let firstInvalidFieldControl = null;
 
-		requiredControlElements.forEach((element) => {
+		controlElements.forEach((element) => {
 			const isFieldValid = this.validateField(element);
 
 			if (!isFieldValid) {
@@ -124,8 +123,8 @@ class FormsValidation {
 	}
 
 	bindEvents() {
-		const requiredControlElements = [...document.querySelector(this.selectors.form).elements].filter(({ required }) => required);
-		requiredControlElements.forEach((inputElement) => {
+		const controlElements = document.querySelector(this.selectors.form).querySelectorAll('input');
+		controlElements.forEach((inputElement) => {
 			inputElement.onblur = (event) => {
 				this.onInput(event);
 				inputElement.addEventListener('input', (event) => this.onInput(event));

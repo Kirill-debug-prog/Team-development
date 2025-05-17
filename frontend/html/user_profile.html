@@ -168,15 +168,26 @@
             </div>
         </div>
 
-        <form action="" class="dialog-form">
+        <form action="" class="dialog-form" data-modify-user-info-form>
             <label class="dialog-label" for="last-name">Фамилия</label>
-            <input class="dialog-input" id="last-name" name="last_name" required maxlength="30"/>
+            <div>
+                <input class="dialog-input" id="last-name" name="lastName" required minlength="2" maxlength="50" pattern="^[a-zA-Zа-яА-Я \-]+$"/>
+                <span class="field-errors" data-js-form-field-errors></span>
+            </div>
 
             <label class="dialog-label" for="first-name">Имя</label>
-            <input class="dialog-input" id="first-name" name="first_name" required required maxlength="30"/>
+            <div>
+                <input class="dialog-input" id="first-name" name="firstName" required minlength="2" maxlength="50" pattern="^[a-zA-Zа-яА-Я \-]+$"/>
+                <span class="field-errors" data-js-form-field-errors></span>
+            </div>
 
             <label class="dialog-label" for="patronymic">Отчество</label>
-            <input class="dialog-input" id="patronymic" name="patronymic" required maxlength="30"/>
+            <div>
+                <input class="dialog-input" id="patronymic" name="middleName" minlength="0" maxlength="50" pattern="^[a-zA-Zа-яА-Я \-]+$"/>
+                <span class="field-errors" data-js-form-field-errors></span>
+            </div>
+            
+            <div class="form-errors" data-js-form-errors></div>
         </form>
 
         <div class="dialog-actions-wrapper">
