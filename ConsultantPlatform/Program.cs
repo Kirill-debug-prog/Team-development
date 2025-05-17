@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using ConsultantPlatform.Hubs;
 using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,6 +55,8 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ConsultantCardService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<ChatService>();
+builder.Services.AddSignalR();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var keyString = jwtSettings["Key"];
@@ -94,21 +97,45 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         ClockSkew = TimeSpan.Zero
     };
+    // ДОБАВЛЯЕМ ЭТОТ БЛОК ДЛЯ SIGNALR
     options.Events = new JwtBearerEvents
     {
-        OnAuthenticationFailed = context =>
+        OnMessageReceived = context =>
         {
-            Console.WriteLine("Authentication failed: " + context.Exception.Message);
+            var accessToken = context.Request.Query["access_token"];
+
+            // Если запрос идет к эндпоинту хаба
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) &&
+                (path.StartsWithSegments("/chathub"))) // Убедитесь, что путь "/chathub" совпадает с тем, что в app.MapHub
+            {
+                // Прочитать токен из query string
+                context.Token = accessToken;
+            }
             return Task.CompletedTask;
         },
-        OnTokenValidated = context =>
+        OnAuthenticationFailed = context => // Этот обработчик у вас уже был, оставляем
         {
-            Console.WriteLine("Token validated for user: " + context.Principal.Identity.Name);
+            // Логируем ошибку аутентификации
+            // Можно использовать ILogger, если он доступен здесь, или Console.WriteLine для быстрой отладки
+            Console.WriteLine("Authentication failed: " + context.Exception.Message);
+            // Дополнительно:
+            if (context.Exception is SecurityTokenExpiredException)
+            {
+                Console.WriteLine("Token expired at: " + ((SecurityTokenExpiredException)context.Exception).Expires);
+            }
+            // Можно добавить больше деталей, если необходимо
+            // context.NoResult(); // Если хотите остановить дальнейшую обработку и вернуть 401 сразу
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context => // Этот обработчик у вас уже был, оставляем
+        {
+            Console.WriteLine("Token validated for user: " + context.Principal?.Identity?.Name);
+            // Здесь можно, например, добавить дополнительные клеймы в Principal, если нужно
             return Task.CompletedTask;
         }
     };
 });
-
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -129,5 +156,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();
