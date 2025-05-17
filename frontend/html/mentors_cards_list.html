@@ -85,9 +85,9 @@
                 type="button">
                 <span class="visually-hidden">Открыть фильтр</span>
             </button>
-            <form id="search-form" class="search-form" action="" method="">
+            <form  class="search-form" action="" method="">
                 <label class="visually-hidden" for="search">Поиск</label>
-                <input class="search-form-input input" type="search" id="search" placeholder="Поиск ментора" />
+                <input class="search-form-input input" type="search" placeholder="Поиск ментора" />
                 <button class="search-form-button" type="submit">
                     <span class="visually-hidden">Найти</span>
                 </button>
@@ -98,9 +98,9 @@
             <aside class="search-filter">
                 <h2 class="visually-hidden">Поиск и фильтры</h2>
 
-                <form class="search-form"  action="" method="">
+                <form id='search-form' class="search-form"  action="" method="">
                     <label class="visually-hidden" for="search">Поиск</label>
-                    <input class="search-form-input input" type="search" id="search" placeholder="Поиск ментора" />
+                    <input class="search-form-input input" type="search" id="search" onfocus="this.select()" placeholder="Поиск ментора" />
                     <button class="search-form-button"
                         type="submit">
                         <span class="visually-hidden">Найти</span>
@@ -157,6 +157,25 @@
                             <!-- Сферы деятельности будут добавляться сюда динамически -->
                         </div>
                     </div>
+
+                    <div class="dropdown-container">
+                        <label class="visually-hidden" for="variant">Вариант сортировки</label>
+                        <select class="dropdown" id="variant" name="variant" onchange="applySortingAndReload()" required>
+                            <option value="" disabled selected hidden>Вариант сортировки</option>
+                            <option value="price">Цена</option>
+                        </select>
+                    </div>
+                    
+                    <div class="dropdown-container">
+                        <label class="visually-hidden" fro="route">Направление</label>
+                        <select class="dropdown" id="route" name="route" onchange="applySortingAndReload()" required>
+                            <option value="" disabled selected hidden>Направление</option>
+                            <option value="asc">По возрастанию</option>
+                            <option value="desc">По убыванию</option>
+                        </select>
+                    </div>
+
+
 
                     <button class="filter-submit-button button"
                         type="submit">

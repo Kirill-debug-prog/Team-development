@@ -241,57 +241,57 @@ experienceRangeInput.forEach(input =>{
     });
 });
 
-// document.addEventListener("DOMContentLoaded", function() {
-//     loadDropdownOptions()
-// });
+document.addEventListener("DOMContentLoaded", function() {
+    loadDropdownOptions()
+});
 
-// async function loadDropdownOptions() {
-//     try {
-//         const response = await fetch('http://89.169.3.43/api/')
+async function loadDropdownOptions() {
+    try {
+        const response = await fetch('http://89.169.3.43/api/category')
 
-//         if (!response.ok) {
-//            throw new Error('Failed to load activity sectors') 
-//         }
+        if (!response.ok) {
+           throw new Error('Failed to load activity sectors') 
+        }
 
-//         const sectors = await response.json()
+        const sectors = await response.json()
 
-//         const optionsContainer = document.getElementById('options')
-//         optionsContainer.innerHTML = ''
+        const optionsContainer = document.getElementById('options')
+        optionsContainer.innerHTML = ''
 
-//         // Если нет данных, отображаем сообщение
-//         if (sectors.length === 0) {
-//             optionsContainer.innerHTML = '<p>Нет доступных сфер деятельности.</p>';
-//             return;
-//         }
+        // Если нет данных, отображаем сообщение
+        if (sectors.length === 0) {
+            optionsContainer.innerHTML = '<p>Нет доступных сфер деятельности.</p>';
+            return;
+        }
 
-//         const fragment = document.createDocumentFragment();
+        const fragment = document.createDocumentFragment();
 
-//         //динамически добавляем новые опции в дропдаун
-//         sectors.forEach(sector => {
-//             const label = document.createElement('label')
-//             label.setAttribute('for', `sector-${sector.id}`)
+        //динамически добавляем новые опции в дропдаун
+        sectors.forEach(sector => {
+            const label = document.createElement('label')
+            label.setAttribute('for', `sector-${sector.id}`)
 
-//             const input = document.createElement('input')
-//             input.type = 'checkbox'
-//             input.value = sector.id
-//             input.id = `sector-${sector.id}`
+            const input = document.createElement('input')
+            input.type = 'checkbox'
+            input.value = sector.id
+            input.id = `sector-${sector.id}`
 
-//             label.appendChild(input)
+            label.appendChild(input)
 
-//             const textNode = document.createTextNode(sector.name)
-//             label.appendChild(textNode)
+            const textNode = document.createTextNode(sector.name)
+            label.appendChild(textNode)
 
-//             fragment.appendChild(label)
-//             });
+            fragment.appendChild(label)
+            });
 
-//             optionsContainer.appendChild(fragment);
+            optionsContainer.appendChild(fragment);
 
-//     } catch (error) {
-//         console.error('Error loading activity sectors:', error)
-//         const optionsContainer = document.getElementById('options')
-//         optionsContainer.innerHTML = '<p>Не удалось загрузить сферы. Попробуйте еще раз позже.</p>'
-//     }
-// }
+    } catch (error) {
+        console.error('Error loading activity sectors:', error)
+        const optionsContainer = document.getElementById('options')
+        optionsContainer.innerHTML = '<p>Не удалось загрузить сферы. Попробуйте еще раз позже.</p>'
+    }
+}
 
 function toggleDropdown() {
     var options = document.getElementById("options");
@@ -305,7 +305,26 @@ document.addEventListener("click", function(event) {
     }
 });
 
+async function applySortingAndReload() {
+    const sortBy = document.getElementById('variant').value
+    const sortDirection = document.getElementById('route').value
 
+    const url = new URL('http://89.169.3.43/api/consultant-cards')
+    url.searchParams.append('sortBy', sortBy)
+    url.searchParams.append('sortDirection', sortDirection)
+
+    try {
+        const respons = await fetch(url)
+        if (respons.ok) {
+            throw new Error("Ошибка при загрузке данных с сервера");
+        }
+
+        const data = await respons.json()
+        createMentorCard(data)
+    } catch (error) {
+        console.error('Ошибка запроса', error)
+    }
+}
 
 // показ и скрытие фильтра через кнопки
 const openFilterButton = document.querySelector(".open-filter-button");
@@ -342,19 +361,25 @@ function appFilters() {
     const maxExperience = document.getElementById('max-experience').value || 100
     const selectedSector = Array.from(document.querySelectorAll('.dropdown-options input:checked'))
         .map(checkbox => checkbox.value)
+    const sortBy = document.getElementById('variant')?.value;
+    const sortDirection = document.getElementById('route')?.value;
 
-    const queryParams = {}
+    const queryParams = new URLSearchParams()
 
-    // Заполняем параметры только если они не равны значениям по умолчанию
-    if (minPrice > 0) queryParams.startPrice = minPrice
-    if (maxPrice < 100000) queryParams.endPrice = maxPrice
-    if (minExperience > 0) queryParams.minTotalExperienceYears = minExperience
-    if (selectedSector.length > 0) queryParams.fieldActivity = selectedSector.join(',')
+    if (minPrice > 0) queryParams.append('startPrice', minPrice)
+    if (maxPrice < 100000) queryParams.append('endPrice', maxPrice)
+    if (minExperience > 0) queryParams.append('minTotalExperienceYears', minExperience)
 
-    const queryString = new URLSearchParams(queryParams).toString()
+    selectedSector.forEach(id => {
+        queryParams.append('categoryIds', id)
+    })
 
-    fetchResults(queryString)
+    if (sortBy) queryParams.append('sortBy', sortBy);
+    if (sortDirection) queryParams.append('sortDirection', sortDirection);
+
+    fetchResults(queryParams.toString())
 }
+
 
 
 async function fetchResults(filters) {
@@ -449,71 +474,73 @@ function resetFilters() {
     document.querySelectorAll('.dropdown-options input').forEach(input => {
         input.checked = false
     });
+
+    document.getElementById('variant').value = '';
+    document.getElementById('route').value = '';
 }
 
 // // Функция для поиска менторов
-// document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
 
-//     const searchForm = document.getElementById('search-form')
-//     const searchInput = document.getElementById('search')
+    const searchForm = document.getElementById('search-form')
+    const searchInput = document.getElementById('search')
     
-//     // Проверяем, что форма и поле поиска существуют на странице
-//     if (searchForm && searchInput) {
-//         searchForm.addEventListener('submit', function (e) {
-//             e.preventDefault()  
+    // Проверяем, что форма и поле поиска существуют на странице
+    if (searchForm && searchInput) {
+        searchForm.addEventListener('submit', function (e) {
+            e.preventDefault()
+            alert('Submit intercepted')
 
-//             const query = searchInput.value.trim(); 
+            const query = searchInput.value.trim(); 
 
-//             if (query) {
-//                 searchMentors(query)
-//             } else {
-//                 console.log('Поиск не выполнен, строка поиска пуста');
-//             }
-//         });
-//     } else {
-//         console.error('Элементы для поиска не найдены на странице');
-//     }
-// });
+            if (query) {
+                searchMentors(query)
+            } else {
+                console.log('Поиск не выполнен, строка поиска пуста');
+            }
+        });
+    } else {
+        console.error('Элементы для поиска не найдены на странице');
+    }
+});
 
-// async function searchMentors(query) {
-//     try {
-//         // Формируем параметры для запроса
-//         const queryParams = new URLSearchParams({
-//             search: query
-//         }).toString()
+async function searchMentors(query) {
+    try {
+        const queryParams = new URLSearchParams({
+            searchTerm: query
+        }).toString()
 
-//         // Отправляем запрос на сервер
-//         const response = await fetch('http://89.169.3.43/api/consultant-cards?' + queryParams, {
-//             method: 'GET',
-//             headers: {
-//                 'Content-Type': 'application/json'
-//             }
-//         });
+        const response = await fetch('http://89.169.3.43/api/consultant-cards?' + queryParams, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
 
-//         const data = await response.json()
+        const data = await response.json()
 
-//         updateResultssearch(data)
-//     } catch (error) {
-//         console.error('Ошибка при поиске:', error)
-//     }
-// }
+        updateResultssearch(data)
+    } catch (error) {
+        console.error('Ошибка при поиске:', error)
+    }
+}
 
-// function updateResultssearch(data) {
-//     const resultContainer = document.getElementById('mentor-card-container')
+function updateResultssearch(data) {
+    const resultContainer = document.getElementById('mentor-card-container')
 
-//     if (!resultContainer) {
-//         console.error("Element with id 'mentor-card-container' not found")
-//         return;
-//     }
+    if (!resultContainer) {
+        console.error("Element with id 'mentor-card-container' not found")
+        return;
+    }
 
-//     resultContainer.innerHTML = ''
+    resultContainer.innerHTML = ''
 
-//     if (data && data.length > 0) {
-//         data.forEach(mentor => {
-//             const mentorCard = createMentorCard(mentor)
-//             resultContainer.appendChild(mentorCard)
-//         });
-//     } else {
-//         resultContainer.innerHTML = '<p>Нет подходящих результатов.</p>'
-//     }
-// }
+    if (data && data.length > 0) {
+        data.forEach(mentor => {
+            const mentorCard = createMentorCard(mentor)
+            resultContainer.appendChild(mentorCard)
+        });
+    } else {
+        resultContainer.innerHTML = '<p>Нет подходящих результатов.</p>'
+    }
+}
