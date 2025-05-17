@@ -128,7 +128,9 @@ public partial class MentiContext : DbContext
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("ID");
             entity.Property(e => e.ChatRoomId).HasColumnName("ChatRoomID");
-            entity.Property(e => e.DateSent).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.DateSent)
+                  .HasColumnType("timestamp with time zone") // или "timestamptz"
+                  .HasColumnName("DateSent"); // Убедитесь, что имя колонки в БД совпадает или явно укажите его, если оно отличается от свойства
             entity.Property(e => e.Message1).HasColumnName("Message");
             entity.Property(e => e.SenderId).HasColumnName("SenderID");
 

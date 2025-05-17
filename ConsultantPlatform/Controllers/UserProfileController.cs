@@ -206,10 +206,10 @@ namespace ConsultantPlatform.Controllers
         /// </summary>
         /// <returns>Список карточек консультанта пользователя.</returns>
         [HttpGet("me/mentor-cards")]
-        [ProducesResponseType(typeof(IEnumerable<ConsultantCardDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<MentorCardDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IEnumerable<ConsultantCardDTO>>> GetMyMentorCards()
+        public async Task<ActionResult<IEnumerable<MentorCardDTO>>> GetMyMentorCards()
         {
             if (!TryGetCurrentUserId(out Guid userId))
             {
@@ -223,13 +223,14 @@ namespace ConsultantPlatform.Controllers
             {
                 var mentorCards = await _consultantCardService.GetMentorCardsByUserIdAsync(userId);
 
-                var cardDtos = mentorCards.Select(mc => new ConsultantCardDTO
+                // Маппим сущности MentorCard в ConsultantCardDTO, включая категории
+                var cardDtos = mentorCards.Select(mc => new MentorCardDTO
                 {
                     Id = mc.Id,
                     Title = mc.Title,
                     Description = mc.Description,
                     MentorId = mc.MentorId,
-                    MentorFullName = $"{mc.Mentor?.LastName ?? ""} {mc.Mentor?.FirstName ?? ""} {mc.Mentor?.MiddleName ?? ""}".Trim(),
+                    MentorFullName = (mc.Mentor != null) ? $"{mc.Mentor.LastName} {mc.Mentor.FirstName} {mc.Mentor.MiddleName}".Trim().Replace("  ", " ") : "N/A",
                     PricePerHours = mc.PricePerHours,
                     Experiences = mc.Experiences?.Select(exp => new ExperienceDTO
                     {
@@ -238,8 +239,13 @@ namespace ConsultantPlatform.Controllers
                         Position = exp.Position,
                         DurationYears = exp.DurationYears,
                         Description = exp.Description
-                    }).ToList() ?? new List<ExperienceDTO>()
-                });
+                    }).ToList() ?? new List<ExperienceDTO>(),
+                    Categories = mc.MentorCardsCategories?.Select(mcc => new CategoryDTO // <--- МАРПИНГ КАТЕГОРИЙ
+                    {
+                        Id = mcc.Category.Id,       // mcc.Category должен быть загружен сервисом
+                        Name = mcc.Category.Name
+                    }).ToList() ?? new List<CategoryDTO>()
+                }).ToList(); // .ToList() здесь, чтобы cardDtos.Count() не выполнял запрос повторно, если бы это был IEnumerable
 
                 _logger.LogInformation("Успешно получено {Count} карточек ментора для пользователя {UserId}.", cardDtos.Count(), userId);
                 return Ok(cardDtos);
