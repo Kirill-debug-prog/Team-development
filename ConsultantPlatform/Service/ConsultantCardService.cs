@@ -22,15 +22,27 @@ namespace ConsultantPlatform.Service
 
         /// <summary>
         /// Получает все карточки консультантов с возможностью фильтрации, включая данные ментора и опыт.
+        /// Добавлена фильтрация по поисковому запросу и сортировка.
         /// </summary>
+        /// <param name="startPrice">Начальная цена за час.</param>
+        /// <param name="endPrice">Конечная цена за час.</param>
+        /// <param name="minTotalExperienceYears">Минимальный суммарный опыт в годах.</param>
+        /// <param name="fieldActivity">Сфера деятельности (через запятую).</param>
+        /// <param name="searchTerm">Строка для поиска по названию карточки.</param> // <-- Новый параметр
+        /// <param name="sortBy">Поле для сортировки (например, "title", "price").</param> // <-- Новый параметр
+        /// <param name="sortDirection">Направление сортировки ("asc" или "desc").</param> // <-- Новый параметр
+        /// <returns>Список карточек консультантов.</returns>
         public async Task<List<MentorCard>> GetConsultantCardsAsync(
             int? startPrice,
             int? endPrice,
             float? minTotalExperienceYears,
-            string? fieldActivity)
+            string? fieldActivity,
+            string? searchTerm,      // <-- Новый параметр
+            string? sortBy,          // <-- Новый параметр
+            string? sortDirection)   // <-- Новый параметр
         {
-            _logger.LogInformation("Получение списка карточек консультантов с фильтрами: startPrice={startPrice}, endPrice={endPrice}, minTotalExperience={minTotalExperience}, fieldActivity={fieldActivity}",
-                startPrice, endPrice, minTotalExperienceYears, fieldActivity);
+            _logger.LogInformation("Получение списка карточек консультантов с фильтрами: startPrice={startPrice}, endPrice={endPrice}, minTotalExperience={minTotalExperience}, fieldActivity={fieldActivity}, searchTerm={searchTerm}, sortBy={sortBy}, sortDirection={sortDirection}",
+                startPrice, endPrice, minTotalExperienceYears, fieldActivity, searchTerm, sortBy, sortDirection);
             try
             {
                 var query = _context.MentorCards
@@ -38,6 +50,8 @@ namespace ConsultantPlatform.Service
                                     .Include(c => c.Mentor)
                                     .Include(c => c.MentorCardsCategories).ThenInclude(mc => mc.Category)
                                     .AsQueryable();
+
+                // --- Применение фильтров ---
 
                 if (startPrice.HasValue)
                     query = query.Where(c => c.PricePerHours >= startPrice.Value);
@@ -47,6 +61,7 @@ namespace ConsultantPlatform.Service
 
                 if (minTotalExperienceYears.HasValue)
                 {
+                    // Исправленный фильтр по суммарному опыту
                     query = query.Where(c => c.Experiences.Sum(e => e.DurationYears) >= minTotalExperienceYears.Value);
                 }
 
@@ -59,6 +74,47 @@ namespace ConsultantPlatform.Service
                                                  .Any(mc => categories.Contains(mc.Category.Name)));
                     }
                 }
+
+                // --- Добавление фильтра по поисковому запросу ---
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    // Поиск без учета регистра, Contains переводится в SQL LIKE %...%
+                    query = query.Where(c => c.Title.ToLower().Contains(searchTerm.ToLower()));
+                }
+                // --- Конец добавления фильтра по поисковому запросу ---
+
+
+                // --- Применение сортировки ---
+                bool ascending = string.IsNullOrEmpty(sortDirection) || sortDirection.ToLower() == "asc";
+
+                if (!string.IsNullOrEmpty(sortBy))
+                {
+                    switch (sortBy.ToLower())
+                    {
+                        case "title":
+                            query = ascending ? query.OrderBy(c => c.Title) : query.OrderByDescending(c => c.Title);
+                            break;
+                        case "price":
+                            query = ascending ? query.OrderBy(c => c.PricePerHours) : query.OrderByDescending(c => c.PricePerHours);
+                            break;
+                        // Добавьте другие поля для сортировки здесь, если нужно (например, по имени ментора, но это сложнее)
+                        // case "mentorname": // Требует более сложного LINQ или вычисления в памяти
+                        //     // Пример: query = ascending ? query.OrderBy(c => c.Mentor.LastName).ThenBy(c => c.Mentor.FirstName) : query.OrderByDescending(c => c.Mentor.LastName).ThenByDescending(c => c.Mentor.FirstName);
+                        //    break;
+                        default:
+                            _logger.LogWarning("Неизвестное поле для сортировки: {SortBy}. Применяется сортировка по умолчанию.", sortBy);
+                            // Если поле для сортировки не распознано, применяем сортировку по умолчанию
+                            query = query.OrderBy(c => c.Id); // Сортировка по ID по умолчанию
+                            break;
+                    }
+                }
+                else
+                {
+                    // Если sortBy не указан, применяем сортировку по умолчанию
+                    query = query.OrderBy(c => c.Id); // Сортировка по ID по умолчанию
+                }
+                // --- Конец применения сортировки ---
+
 
                 var cards = await query.ToListAsync();
                 _logger.LogInformation("Найдено {CardCount} карточек консультантов, соответствующих критериям.", cards.Count);

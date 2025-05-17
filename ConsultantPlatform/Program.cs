@@ -53,6 +53,7 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ConsultantCardService>();
+builder.Services.AddScoped<CategoryService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var keyString = jwtSettings["Key"];

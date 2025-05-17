@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore; // Для DbUpdateException
+using Microsoft.EntityFrameworkCore;
 
 namespace ConsultantPlatform.Controllers
 {
@@ -29,12 +29,15 @@ namespace ConsultantPlatform.Controllers
         }
 
         /// <summary>
-        /// Получает все карточки консультантов с возможностью фильтрации.
+        /// Получает все карточки консультантов с возможностью фильтрации и сортировки.
         /// </summary>
         /// <param name="startPrice">Начальная цена за час.</param>
         /// <param name="endPrice">Конечная цена за час.</param>
         /// <param name="minTotalExperienceYears">Минимальный суммарный опыт в годах.</param>
         /// <param name="fieldActivity">Сфера деятельности (через запятую).</param>
+        /// <param name="searchTerm">Строка для поиска по названию карточки.</param>
+        /// <param name="sortBy">Поле для сортировки (например, 'title', 'price').</param>
+        /// <param name="sortDirection">Направление сортировки ('asc' или 'desc').</param>
         /// <returns>Список карточек консультантов.</returns>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<ConsultantCardDTO>), StatusCodes.Status200OK)]
@@ -43,13 +46,25 @@ namespace ConsultantPlatform.Controllers
             [FromQuery] int? startPrice,
             [FromQuery] int? endPrice,
             [FromQuery] float? minTotalExperienceYears,
-            [FromQuery] string? fieldActivity)
+            [FromQuery] string? fieldActivity,
+            [FromQuery] string? searchTerm,    // <-- Принимаем из Query String
+            [FromQuery] string? sortBy,        // <-- Принимаем из Query String
+            [FromQuery] string? sortDirection) // <-- Принимаем из Query String
         {
-            _logger.LogInformation("Запрос на получение списка карточек консультантов с фильтрами: startPrice={StartPrice}, endPrice={EndPrice}, minTotalExperienceYears={MinTotalExperience}, fieldActivity={FieldActivity}",
-                startPrice, endPrice, minTotalExperienceYears, fieldActivity);
+            _logger.LogInformation("Запрос на получение списка карточек консультантов с фильтрами: startPrice={StartPrice}, endPrice={EndPrice}, minTotalExperienceYears={MinTotalExperience}, fieldActivity={FieldActivity}, searchTerm={SearchTerm}, sortBy={SortBy}, sortDirection={SortDirection}",
+                startPrice, endPrice, minTotalExperienceYears, fieldActivity, searchTerm, sortBy, sortDirection);
             try
             {
-                var mentorCards = await _consultantCardService.GetConsultantCardsAsync(startPrice, endPrice, minTotalExperienceYears, fieldActivity);
+                // --- Передаем новые параметры в сервис ---
+                var mentorCards = await _consultantCardService.GetConsultantCardsAsync(
+                    startPrice,
+                    endPrice,
+                    minTotalExperienceYears,
+                    fieldActivity,
+                    searchTerm,      // <-- Передаем
+                    sortBy,          // <-- Передаем
+                    sortDirection);   // <-- Передаем
+                // --- Конец передачи ---
 
                 var cardDtos = mentorCards.Select(mc => new ConsultantCardDTO
                 {
