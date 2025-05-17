@@ -1,32 +1,29 @@
-﻿using ConsultantPlatform.Models.Entity;
+﻿using ConsultantPlatform.Models.DTO;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace ConsultantPlatform.Models.DTO
+namespace ConsultantPlatform.WebApp.Models.DTOs
 {
-    public class ConsultantCardDTO
+    public class CreateMentorCardDTO
     {
-        public Guid Id { get; set; }
-
         [Required(ErrorMessage = "Заголовок карточки обязателен")]
         [StringLength(200, MinimumLength = 5, ErrorMessage = "Заголовок должен содержать от {2} до {1} символов")]
         public string Title { get; set; } = null!;
 
         public string? Description { get; set; }
 
-        public Guid MentorId { get; set; }
-
-        public string? MentorFullName { get; set; }
+        [Required(ErrorMessage = "ID ментора обязателен")]
+        public Guid MentorId { get; set; } // ID ментора, к которому привязывается карточка
 
         [Required(ErrorMessage = "Цена за час обязательна")]
         [Range(0, (double)decimal.MaxValue, ErrorMessage = "Цена должна быть неотрицательной")]
         public decimal PricePerHours { get; set; }
 
-        public List<ExperienceDTO> Experiences { get; set; } = new List<ExperienceDTO>();
+        // Список ID выбранных категорий
+        public List<int>? SelectedCategoryIds { get; set; } = new List<int>();
 
-        // Вот это ключевое поле для отправки полной информации о категориях клиенту
-        public List<CategoryDTO> Categories { get; set; } = new List<CategoryDTO>();
-        // CategoryDTO содержит { int Id, string Name }
+        // Список опыта для добавления (опционально)
+        public List<ExperienceDTO>? Experiences { get; set; } = new List<ExperienceDTO>();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ConsultantPlatform.Models.Entity;
+using ConsultantPlatform.WebApp.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -21,34 +22,39 @@ namespace ConsultantPlatform.Service
         }
 
         /// <summary>
-        /// Получает все карточки консультантов с возможностью фильтрации, включая данные ментора и опыт.
-        /// Добавлена фильтрация по поисковому запросу и сортировка.
+        /// Получает все карточки консультантов с возможностью фильтрации, включая данные ментора, опыт и категории.
+        /// Добавлена фильтрация по поисковому запросу, выбранным категориям (по ID) и сортировка.
         /// </summary>
         /// <param name="startPrice">Начальная цена за час.</param>
         /// <param name="endPrice">Конечная цена за час.</param>
         /// <param name="minTotalExperienceYears">Минимальный суммарный опыт в годах.</param>
-        /// <param name="fieldActivity">Сфера деятельности (через запятую).</param>
-        /// <param name="searchTerm">Строка для поиска по названию карточки.</param> // <-- Новый параметр
-        /// <param name="sortBy">Поле для сортировки (например, "title", "price").</param> // <-- Новый параметр
-        /// <param name="sortDirection">Направление сортировки ("asc" или "desc").</param> // <-- Новый параметр
-        /// <returns>Список карточек консультантов.</returns>
+        /// <param name="categoryIds">Список ID категорий для фильтрации.</param> // <-- ИЗМЕНЕНО
+        /// <param name="searchTerm">Строка для поиска по названию карточки.</param>
+        /// <param name="sortBy">Поле для сортировки (например, "title", "price").</param>
+        /// <param name="sortDirection">Направление сортировки ("asc" или "desc").</param>
+        /// <returns>Список сущностей MentorCard, соответствующих критериям.</returns>
         public async Task<List<MentorCard>> GetConsultantCardsAsync(
             int? startPrice,
             int? endPrice,
             float? minTotalExperienceYears,
-            string? fieldActivity,
-            string? searchTerm,      // <-- Новый параметр
-            string? sortBy,          // <-- Новый параметр
-            string? sortDirection)   // <-- Новый параметр
+            List<int>? categoryIds,    // <-- ИЗМЕНЕНО: тип List<int>? и имя
+            string? searchTerm,
+            string? sortBy,
+            string? sortDirection)
         {
-            _logger.LogInformation("Получение списка карточек консультантов с фильтрами: startPrice={startPrice}, endPrice={endPrice}, minTotalExperience={minTotalExperience}, fieldActivity={fieldActivity}, searchTerm={searchTerm}, sortBy={sortBy}, sortDirection={sortDirection}",
-                startPrice, endPrice, minTotalExperienceYears, fieldActivity, searchTerm, sortBy, sortDirection);
+            // Преобразуем список ID категорий в строку для логирования, если он не null
+            string categoryIdsForLog = categoryIds != null ? string.Join(",", categoryIds) : "null";
+
+            _logger.LogInformation(
+                "Получение списка карточек консультантов с фильтрами: startPrice={startPrice}, endPrice={endPrice}, minTotalExperience={minTotalExperienceYears}, categoryIds={categoryIds}, searchTerm={searchTerm}, sortBy={sortBy}, sortDirection={sortDirection}",
+                startPrice, endPrice, minTotalExperienceYears, categoryIdsForLog, searchTerm, sortBy, sortDirection); // <-- ИЗМЕНЕНО в логировании
             try
             {
                 var query = _context.MentorCards
                                     .Include(c => c.Experiences)
                                     .Include(c => c.Mentor)
-                                    .Include(c => c.MentorCardsCategories).ThenInclude(mc => mc.Category)
+                                    .Include(c => c.MentorCardsCategories)
+                                        .ThenInclude(mcc => mcc.Category) // Важно для доступа к Category.Id и Category.Name
                                     .AsQueryable();
 
                 // --- Применение фильтров ---
@@ -61,28 +67,24 @@ namespace ConsultantPlatform.Service
 
                 if (minTotalExperienceYears.HasValue)
                 {
-                    // Исправленный фильтр по суммарному опыту
-                    query = query.Where(c => c.Experiences.Sum(e => e.DurationYears) >= minTotalExperienceYears.Value);
+                    query = query.Where(c => c.Experiences.Any() && c.Experiences.Sum(e => e.DurationYears) >= minTotalExperienceYears.Value);
+                    // Добавил .Any() перед Sum, чтобы избежать ошибки, если Experiences пуст.
+                    // Хотя EF Core обычно справляется с Sum по пустой коллекции (возвращает 0), это делает намерение более явным.
                 }
 
-                if (!string.IsNullOrEmpty(fieldActivity))
+                // --- ИЗМЕНЕННАЯ ФИЛЬТРАЦИЯ ПО КАТЕГОРИЯМ ---
+                if (categoryIds != null && categoryIds.Any())
                 {
-                    var categories = fieldActivity.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim()).ToList();
-                    if (categories.Any())
-                    {
-                        query = query.Where(m => m.MentorCardsCategories
-                                                 .Any(mc => categories.Contains(mc.Category.Name)));
-                    }
+                    // Карточка должна иметь хотя бы одну категорию, ID которой присутствует в списке categoryIds
+                    query = query.Where(m => m.MentorCardsCategories
+                                                 .Any(mcc => categoryIds.Contains(mcc.CategoryId)));
                 }
+                // --- КОНЕЦ ИЗМЕНЕННОЙ ФИЛЬТРАЦИИ ---
 
-                // --- Добавление фильтра по поисковому запросу ---
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    // Поиск без учета регистра, Contains переводится в SQL LIKE %...%
                     query = query.Where(c => c.Title.ToLower().Contains(searchTerm.ToLower()));
                 }
-                // --- Конец добавления фильтра по поисковому запросу ---
-
 
                 // --- Применение сортировки ---
                 bool ascending = string.IsNullOrEmpty(sortDirection) || sortDirection.ToLower() == "asc";
@@ -97,24 +99,22 @@ namespace ConsultantPlatform.Service
                         case "price":
                             query = ascending ? query.OrderBy(c => c.PricePerHours) : query.OrderByDescending(c => c.PricePerHours);
                             break;
-                        // Добавьте другие поля для сортировки здесь, если нужно (например, по имени ментора, но это сложнее)
-                        // case "mentorname": // Требует более сложного LINQ или вычисления в памяти
-                        //     // Пример: query = ascending ? query.OrderBy(c => c.Mentor.LastName).ThenBy(c => c.Mentor.FirstName) : query.OrderByDescending(c => c.Mentor.LastName).ThenByDescending(c => c.Mentor.FirstName);
-                        //    break;
+                        // case "experience": // Сортировка по суммарному опыту
+                        //     query = ascending
+                        //         ? query.OrderBy(c => c.Experiences.Sum(e => e.DurationYears))
+                        //         : query.OrderByDescending(c => c.Experiences.Sum(e => e.DurationYears));
+                        //     break;
                         default:
-                            _logger.LogWarning("Неизвестное поле для сортировки: {SortBy}. Применяется сортировка по умолчанию.", sortBy);
-                            // Если поле для сортировки не распознано, применяем сортировку по умолчанию
-                            query = query.OrderBy(c => c.Id); // Сортировка по ID по умолчанию
+                            _logger.LogWarning("Неизвестное поле для сортировки: {SortBy}. Применяется сортировка по умолчанию (по ID).", sortBy);
+                            query = query.OrderBy(c => c.Id); // Или другая сортировка по умолчанию
                             break;
                     }
                 }
                 else
                 {
-                    // Если sortBy не указан, применяем сортировку по умолчанию
-                    query = query.OrderBy(c => c.Id); // Сортировка по ID по умолчанию
+                    // Сортировка по умолчанию, если sortBy не указан
+                    query = query.OrderBy(c => c.Id); // Например, по ID
                 }
-                // --- Конец применения сортировки ---
-
 
                 var cards = await query.ToListAsync();
                 _logger.LogInformation("Найдено {CardCount} карточек консультантов, соответствующих критериям.", cards.Count);
@@ -123,6 +123,7 @@ namespace ConsultantPlatform.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ошибка при получении списка карточек консультантов");
+                // Вместо ApplicationException можно использовать более специфическое или кастомное исключение
                 throw new ApplicationException("Произошла ошибка при получении списка карточек консультантов.", ex);
             }
         }
@@ -158,36 +159,122 @@ namespace ConsultantPlatform.Service
         }
 
         /// <summary>
-        /// Создает новую карточку консультанта (без данных об опыте и категориях).
+        /// Создает новую карточку консультанта с указанными категориями и опытом.
         /// </summary>
-        /// <remarks>Возвращает созданную сущность.</remarks>
-        public async Task<MentorCard> CreateConsultantCardAsync(MentorCard card)
+        /// <param name="cardDto">DTO с данными для создания карточки.</param>
+        /// <returns>Созданная сущность MentorCard.</returns>
+        /// <exception cref="ArgumentNullException">Если cardDto равен null.</exception>
+        /// <exception cref="ApplicationException">При ошибках сохранения или других проблемах.</exception>
+        public async Task<MentorCard> CreateConsultantCardAsync(CreateMentorCardDTO cardDto)
         {
-            if (card == null)
+            if (cardDto == null)
             {
-                _logger.LogWarning("Вызов CreateConsultantCardAsync с нулевыми данными карточки.");
-                throw new ArgumentNullException(nameof(card));
+                _logger.LogWarning("Вызов CreateConsultantCardAsync с нулевыми данными DTO.");
+                throw new ArgumentNullException(nameof(cardDto));
             }
-            _logger.LogInformation("Создание новой карточки консультанта для Ментора {MentorId} с заголовком {Title}", card.MentorId, card.Title);
+
+            _logger.LogInformation(
+                "Попытка создания новой карточки консультанта для Ментора {MentorId} с заголовком {Title}",
+                cardDto.MentorId, cardDto.Title);
+
+            // 1. Проверяем существование ментора
+            var mentorExists = await _context.Users.AnyAsync(u => u.Id == cardDto.MentorId);
+            if (!mentorExists)
+            {
+                _logger.LogWarning("Ментор с ID {MentorId} не найден при создании карточки.", cardDto.MentorId);
+                throw new ApplicationException($"Ментор с ID {cardDto.MentorId} не найден. Карточка не может быть создана.");
+            }
+
+            var newCard = new MentorCard
+            {
+                Title = cardDto.Title,
+                Description = cardDto.Description,
+                MentorId = cardDto.MentorId,
+                PricePerHours = cardDto.PricePerHours,
+                Experiences = new List<Experience>(),
+                MentorCardsCategories = new List<MentorCardsCategory>()
+            };
+
+            // 2. Обрабатываем категории
+            if (cardDto.SelectedCategoryIds != null && cardDto.SelectedCategoryIds.Any())
+            {
+                // Убираем дубликаты из SelectedCategoryIds, если они могут там быть
+                var distinctCategoryIds = cardDto.SelectedCategoryIds.Distinct().ToList();
+
+                var existingCategories = await _context.Categories
+                                                    .Where(c => distinctCategoryIds.Contains(c.Id))
+                                                    .ToListAsync(); // Загружаем сущности, а не только ID, чтобы потом не делать лишних запросов
+
+                if (existingCategories.Count != distinctCategoryIds.Count)
+                {
+                    var foundCategoryIds = existingCategories.Select(ec => ec.Id).ToList();
+                    var missingCategoryIds = distinctCategoryIds.Except(foundCategoryIds).ToList();
+                    _logger.LogWarning("Одна или несколько категорий не найдены: {MissingCategoryIds}. Запрос содержал: {RequestedCategoryIds}",
+                                       string.Join(", ", missingCategoryIds), string.Join(", ", distinctCategoryIds));
+                    // РЕШЕНИЕ: Выбрасываем ошибку, если хотя бы одна категория не найдена
+                    throw new ApplicationException($"Не удалось создать карточку. Категории с ID: [{string.Join(", ", missingCategoryIds)}] не найдены.");
+                }
+
+                foreach (var category in existingCategories)
+                {
+                    newCard.MentorCardsCategories.Add(new MentorCardsCategory
+                    {                    
+                        CategoryId = category.Id
+                    });
+                }
+            }
+
+            // 3. Обрабатываем опыт
+            if (cardDto.Experiences != null && cardDto.Experiences.Any())
+            {
+                foreach (var expDto in cardDto.Experiences)
+                {
+                    // Дополнительная валидация для ExperienceDTO может быть здесь или на уровне модели с атрибутами
+                    newCard.Experiences.Add(new Experience
+                    {
+                        CompanyName = expDto.CompanyName,
+                        Position = expDto.Position,
+                        DurationYears = expDto.DurationYears,
+                        Description = expDto.Description
+                    });
+                }
+            }
+
             try
             {
-                card.Experiences ??= new List<Experience>();
-                card.MentorCardsCategories ??= new List<MentorCardsCategory>();
-
-                await _context.MentorCards.AddAsync(card);
+                // 4. Добавляем карточку в контекст и сохраняем изменения
+                await _context.MentorCards.AddAsync(newCard);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Карточка консультанта с ID {CardId} успешно создана", card.Id);
 
-                return card;
+                _logger.LogInformation("Карточка консультанта с ID {CardId} успешно создана для ментора {MentorId}", newCard.Id, newCard.MentorId);
+
+                // 5. Возвращаем ПОЛНОСТЬЮ ЗАГРУЖЕННУЮ сущность
+                // Это позволит контроллеру сразу иметь все данные для маппинга в DTO ответа.
+                var createdCardWithDetails = await _context.MentorCards
+                   .Include(mc => mc.Mentor) // Включаем ментора
+                   .Include(mc => mc.Experiences) // Включаем опыт
+                   .Include(mc => mc.MentorCardsCategories)
+                       .ThenInclude(mcc => mcc.Category) // Включаем категории через связующую таблицу
+                   .AsNoTracking() // Если сущность не будет дальше изменяться в этом же запросе
+                   .FirstOrDefaultAsync(mc => mc.Id == newCard.Id);
+
+                return createdCardWithDetails ?? newCard; // На случай если FirstOrDefaultAsync вернет null (что маловероятно после успешного Add/Save)
+                                                          // но newCard уже сохранен, так что он не null.
+                                                          // Лучше, если createdCardWithDetails будет null, то это ошибка и надо ее обработать.
+                                                          // Но он не должен быть null если все прошло хорошо.
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Ошибка базы данных при создании карточки консультанта для Ментора {MentorId}", card.MentorId);
-                throw new ApplicationException("Ошибка сохранения карточки консультанта в базе данных.", ex);
+                _logger.LogError(ex, "Ошибка базы данных при создании карточки консультанта для Ментора {MentorId}: {InnerExceptionMessage}", cardDto.MentorId, ex.InnerException?.Message);
+                throw new ApplicationException($"Ошибка сохранения карточки консультанта в базе данных: {ex.InnerException?.Message ?? ex.Message}", ex);
+            }
+            catch (ApplicationException) // Перехватываем свои же ApplicationException (например, от проверки категорий)
+            {
+                throw; // и пробрасываем их дальше, чтобы контроллер их обработал
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Непредвиденная ошибка при создании карточки консультанта для Ментора {MentorId}", card.MentorId);
+                _logger.LogError(ex, "Непредвиденная ошибка при создании карточки консультанта для Ментора {MentorId}", cardDto.MentorId);
                 throw new ApplicationException("Произошла непредвиденная ошибка при создании карточки консультанта.", ex);
             }
         }

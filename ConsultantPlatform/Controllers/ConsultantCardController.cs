@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using ConsultantPlatform.WebApp.Models.DTOs;
 
 namespace ConsultantPlatform.Controllers
 {
@@ -28,17 +29,6 @@ namespace ConsultantPlatform.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Получает все карточки консультантов с возможностью фильтрации и сортировки.
-        /// </summary>
-        /// <param name="startPrice">Начальная цена за час.</param>
-        /// <param name="endPrice">Конечная цена за час.</param>
-        /// <param name="minTotalExperienceYears">Минимальный суммарный опыт в годах.</param>
-        /// <param name="fieldActivity">Сфера деятельности (через запятую).</param>
-        /// <param name="searchTerm">Строка для поиска по названию карточки.</param>
-        /// <param name="sortBy">Поле для сортировки (например, 'title', 'price').</param>
-        /// <param name="sortDirection">Направление сортировки ('asc' или 'desc').</param>
-        /// <returns>Список карточек консультантов.</returns>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<ConsultantCardDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -46,13 +36,19 @@ namespace ConsultantPlatform.Controllers
             [FromQuery] int? startPrice,
             [FromQuery] int? endPrice,
             [FromQuery] float? minTotalExperienceYears,
-            [FromQuery] string? fieldActivity,
-            [FromQuery] string? searchTerm,    // <-- Принимаем из Query String
-            [FromQuery] string? sortBy,        // <-- Принимаем из Query String
-            [FromQuery] string? sortDirection) // <-- Принимаем из Query String
+            // [FromQuery] string? fieldActivity, // <-- Старый параметр, заменяем
+            [FromQuery] List<int>? categoryIds,   // <-- НОВЫЙ ПАРАМЕТР для ID категорий
+            [FromQuery] string? searchTerm,
+            [FromQuery] string? sortBy,
+            [FromQuery] string? sortDirection)
         {
-            _logger.LogInformation("Запрос на получение списка карточек консультантов с фильтрами: startPrice={StartPrice}, endPrice={EndPrice}, minTotalExperienceYears={MinTotalExperience}, fieldActivity={FieldActivity}, searchTerm={SearchTerm}, sortBy={SortBy}, sortDirection={SortDirection}",
-                startPrice, endPrice, minTotalExperienceYears, fieldActivity, searchTerm, sortBy, sortDirection);
+            // Преобразуем список ID категорий в строку для логирования, если он не null
+            string categoryIdsForLog = categoryIds != null && categoryIds.Any() ? string.Join(",", categoryIds) : "null";
+
+            _logger.LogInformation(
+                "Запрос на получение списка карточек консультантов с фильтрами: startPrice={StartPrice}, endPrice={EndPrice}, minTotalExperienceYears={MinTotalExperience}, categoryIds={categoryIds}, searchTerm={SearchTerm}, sortBy={SortBy}, sortDirection={SortDirection}",
+                startPrice, endPrice, minTotalExperienceYears, categoryIdsForLog, searchTerm, sortBy, sortDirection); // <-- Обновлено логирование
+
             try
             {
                 // --- Передаем новые параметры в сервис ---
@@ -60,19 +56,20 @@ namespace ConsultantPlatform.Controllers
                     startPrice,
                     endPrice,
                     minTotalExperienceYears,
-                    fieldActivity,
-                    searchTerm,      // <-- Передаем
-                    sortBy,          // <-- Передаем
-                    sortDirection);   // <-- Передаем
+                    categoryIds,    // <-- Передаем новый параметр categoryIds
+                    searchTerm,
+                    sortBy,
+                    sortDirection);
                 // --- Конец передачи ---
 
+                // Маппим сущности MentorCard в ConsultantCardDTO, включая категории
                 var cardDtos = mentorCards.Select(mc => new ConsultantCardDTO
                 {
                     Id = mc.Id,
                     Title = mc.Title,
                     Description = mc.Description,
                     MentorId = mc.MentorId,
-                    MentorFullName = $"{mc.Mentor?.LastName ?? ""} {mc.Mentor?.FirstName ?? ""} {mc.Mentor?.MiddleName ?? ""}".Trim(),
+                    MentorFullName = (mc.Mentor != null) ? $"{mc.Mentor.LastName} {mc.Mentor.FirstName} {mc.Mentor.MiddleName}".Trim().Replace("  ", " ") : "N/A",
                     PricePerHours = mc.PricePerHours,
                     Experiences = mc.Experiences?.Select(exp => new ExperienceDTO
                     {
@@ -81,114 +78,124 @@ namespace ConsultantPlatform.Controllers
                         Position = exp.Position,
                         DurationYears = exp.DurationYears,
                         Description = exp.Description
-                    }).ToList() ?? new List<ExperienceDTO>()
-                });
+                    }).ToList() ?? new List<ExperienceDTO>(),
+                    Categories = mc.MentorCardsCategories?.Select(mcc => new CategoryDTO // <--- МАРПИНГ КАТЕГОРИЙ
+                    {
+                        Id = mcc.Category.Id,       // mcc.Category должен быть загружен сервисом
+                        Name = mcc.Category.Name
+                    }).ToList() ?? new List<CategoryDTO>()
+                }).ToList(); // .ToList() здесь, чтобы cardDtos.Count() не выполнял запрос повторно, если бы это был IEnumerable
 
-                _logger.LogInformation("Успешно получено {Count} карточек консультантов.", cardDtos.Count());
+                _logger.LogInformation("Успешно получено {Count} карточек консультантов.", cardDtos.Count);
                 return Ok(cardDtos);
             }
-            catch (ApplicationException ex)
+            catch (ApplicationException ex) // Предполагаем, что это ожидаемые ошибки от бизнес-логики
             {
-                _logger.LogError(ex, "Ошибка приложения при получении карточек консультантов.");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Произошла ошибка приложения при получении карточек консультантов.");
+                _logger.LogWarning(ex, "Ошибка приложения при получении карточек консультантов: {ErrorMessage}", ex.Message);
+                // Для ApplicationException можно вернуть BadRequest или более конкретный код ошибки,
+                // если сообщение предназначено для клиента.
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Произошла ошибка при обработке вашего запроса.", Details = ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Непредвиденная ошибка при получении карточек консультантов.");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Произошла непредвиденная ошибка при получении карточек консультантов.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Произошла непредвиденная ошибка при получении карточек консультантов." });
             }
         }
 
-        /// <summary>
-        /// Создает новую карточку консультанта, включая данные об опыте.
-        /// </summary>
-        /// <param name="cardDto">Данные для создания карточки, включая список Experiences.</param>
-        /// <returns>Созданная карточка консультанта.</returns>
         [Authorize]
         [HttpPost]
-        [ProducesResponseType(typeof(ConsultantCardDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ConsultantCardDTO), StatusCodes.Status201Created)] // Возвращаем ConsultantCardDTO
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ConsultantCardDTO>> CreateConsultantCard([FromBody] ConsultantCardDTO cardDto)
+        public async Task<ActionResult<ConsultantCardDTO>> CreateConsultantCard([FromBody] CreateMentorCardDTO requestDto) // <--- ПРИНИМАЕМ CreateMentorCardDTO
         {
-            ModelState.Remove("MentorFullName");
+            // Если MentorId есть в CreateMentorCardDTO и помечен [Required],
+            // то ModelState.IsValid проверит его наличие.
+            // Мы все равно перезапишем его значением из токена ниже.
+            // ModelState.Remove("MentorId"); // Можно удалить, если MentorId не должен приходить от клиента
 
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Ошибка валидации модели при создании карточки консультанта.");
+                _logger.LogWarning("Ошибка валидации модели при создании карточки консультанта: {ModelStateErrors}",
+                    string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
                 return BadRequest(ModelState);
             }
 
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var mentorIdGuid))
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var mentorIdFromToken))
             {
                 _logger.LogWarning("Создание карточки не удалось: невалидный идентификатор пользователя в токене.");
                 return Unauthorized(new { Message = "Невалидный идентификатор пользователя в токене." });
             }
-            _logger.LogInformation("Пользователь {UserId} пытается создать карточку консультанта.", mentorIdGuid);
+
+            // Устанавливаем MentorId из токена в DTO, который пойдет в сервис.
+            // Это гарантирует, что карточка создается для авторизованного пользователя.
+            requestDto.MentorId = mentorIdFromToken;
+
+            _logger.LogInformation("Пользователь {UserId} пытается создать карточку консультанта с заголовком '{Title}'.", requestDto.MentorId, requestDto.Title);
 
             try
             {
-                var cardToCreate = new MentorCard
-                {
-                    Title = cardDto.Title,
-                    Description = cardDto.Description,
-                    PricePerHours = cardDto.PricePerHours,
-                    MentorId = mentorIdGuid,
-                    Experiences = cardDto.Experiences?.Select(expDto => new Experience
-                    {
-                        CompanyName = expDto.CompanyName,
-                        Position = expDto.Position,
-                        DurationYears = expDto.DurationYears,
-                        Description = expDto.Description
-                    }).ToList() ?? new List<Experience>()
-                };
+                // Вызываем метод сервиса. Он принимает CreateMentorCardDTO
+                // и (согласно нашему последнему обсуждению) возвращает ПОЛНОСТЬЮ ЗАГРУЖЕННУЮ сущность MentorCard.
+                var createdCardEntity = await _consultantCardService.CreateConsultantCardAsync(requestDto);
 
-                var createdCard = await _consultantCardService.CreateConsultantCardAsync(cardToCreate);
+                // Так как сервис теперь возвращает полностью загруженную сущность,
+                // следующий блок для повторной загрузки НЕ НУЖЕН:
+                // /*
+                // var fullCreatedCard = await _consultantCardService.GetConsultantCardAsync(createdCardEntity.Id);
+                // if (fullCreatedCard == null)
+                // {
+                //     _logger.LogError(...);
+                //     return StatusCode(...);
+                // }
+                // */
+                // Вместо fullCreatedCard мы теперь используем напрямую createdCardEntity.
 
-                var fullCreatedCard = await _consultantCardService.GetConsultantCardAsync(createdCard.Id);
-                if (fullCreatedCard == null)
+                // Маппим ПОЛНОСТЬЮ ЗАГРУЖЕННУЮ сущность createdCardEntity в ConsultantCardDTO для ответа клиенту
+                var responseDto = new ConsultantCardDTO
                 {
-                    _logger.LogError("Не удалось повторно загрузить только что созданную карту {CardId} с полными данными. Это неожиданно.", createdCard.Id);
-                    return StatusCode(StatusCodes.Status500InternalServerError, "Ошибка при получении данных созданной карты.");
-                }
-
-                var createdCardDto = new ConsultantCardDTO
-                {
-                    Id = fullCreatedCard.Id,
-                    Title = fullCreatedCard.Title,
-                    Description = fullCreatedCard.Description,
-                    MentorId = fullCreatedCard.MentorId,
-                    MentorFullName = $"{fullCreatedCard.Mentor?.LastName ?? ""} {fullCreatedCard.Mentor?.FirstName ?? ""} {fullCreatedCard.Mentor?.MiddleName ?? ""}".Trim(),
-                    PricePerHours = fullCreatedCard.PricePerHours,
-                    Experiences = fullCreatedCard.Experiences?.Select(exp => new ExperienceDTO
+                    Id = createdCardEntity.Id,
+                    Title = createdCardEntity.Title,
+                    Description = createdCardEntity.Description,
+                    MentorId = createdCardEntity.MentorId, // Берем из сущности (должен совпадать с mentorIdFromToken)
+                    MentorFullName = (createdCardEntity.Mentor != null) ? $"{createdCardEntity.Mentor.LastName} {createdCardEntity.Mentor.FirstName} {createdCardEntity.Mentor.MiddleName}".Trim().Replace("  ", " ") : "N/A",
+                    PricePerHours = createdCardEntity.PricePerHours,
+                    Experiences = createdCardEntity.Experiences?.Select(exp => new ExperienceDTO
                     {
                         Id = exp.Id,
                         CompanyName = exp.CompanyName,
                         Position = exp.Position,
                         DurationYears = exp.DurationYears,
                         Description = exp.Description
-                    }).ToList() ?? new List<ExperienceDTO>()
+                    }).ToList() ?? new List<ExperienceDTO>(),
+                    Categories = createdCardEntity.MentorCardsCategories?.Select(mcc => new CategoryDTO
+                    {
+                        Id = mcc.Category.Id, // mcc.Category должен быть загружен сервисом
+                        Name = mcc.Category.Name
+                    }).ToList() ?? new List<CategoryDTO>()
                 };
 
-                _logger.LogInformation("Карточка консультанта {CardId} успешно создана пользователем {UserId}.", createdCardDto.Id, mentorIdGuid);
-                return CreatedAtAction(nameof(GetConsultantCardById), new { id = createdCardDto.Id }, createdCardDto);
+                _logger.LogInformation("Карточка консультанта {CardId} успешно создана пользователем {UserId}.", responseDto.Id, requestDto.MentorId);
+                // Убедитесь, что GetConsultantCardById существует или замените на подходящее имя действия
+                return CreatedAtAction(nameof(GetConsultantCardById), new { id = responseDto.Id }, responseDto);
             }
             catch (DbUpdateException dbEx)
             {
-                _logger.LogError(dbEx, "Ошибка базы данных при создании карточки консультанта для пользователя {UserId}.", mentorIdGuid);
-                return StatusCode(StatusCodes.Status500InternalServerError, "Произошла ошибка при сохранении карточки в базе данных.");
+                _logger.LogError(dbEx, "Ошибка базы данных при создании карточки консультанта для пользователя {UserId}: {InnerExceptionMessage}", requestDto.MentorId, dbEx.InnerException?.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Произошла ошибка при сохранении карточки в базе данных.", Details = dbEx.InnerException?.Message });
             }
-            catch (ApplicationException ex)
+            catch (ApplicationException appEx) // Ошибки, которые мы сами генерируем в сервисах (например, "категория не найдена")
             {
-                _logger.LogError(ex, "Ошибка приложения при создании карточки консультанта для пользователя {UserId}.", mentorIdGuid);
-                return StatusCode(StatusCodes.Status500InternalServerError, "Произошла ошибка приложения при создании карточки консультанта.");
+                _logger.LogWarning(appEx, "Ошибка приложения при создании карточки консультанта для пользователя {UserId}: {ErrorMessage}", requestDto.MentorId, appEx.Message);
+                return BadRequest(new { Message = appEx.Message }); // ApplicationException часто содержат сообщения для клиента
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Непредвиденная ошибка при создании карточки консультанта для пользователя {UserId}.", mentorIdGuid);
-                return StatusCode(StatusCodes.Status500InternalServerError, "Произошла непредвиденная ошибка при создании карточки консультанта.");
+                _logger.LogError(ex, "Непредвиденная ошибка при создании карточки консультанта для пользователя {UserId}.", requestDto.MentorId);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Произошла непредвиденная ошибка при создании карточки консультанта." });
             }
         }
 

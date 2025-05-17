@@ -81,8 +81,8 @@
         "IsRequired": false
       },
       {
-        "Name": "fieldActivity",
-        "Type": "System.String",
+        "Name": "categoryIds",
+        "Type": "System.Collections.Generic.List\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
       },
       {
@@ -125,8 +125,8 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "cardDto",
-        "Type": "ConsultantPlatform.Models.DTO.ConsultantCardDTO",
+        "Name": "requestDto",
+        "Type": "ConsultantPlatform.WebApp.Models.DTOs.CreateMentorCardDTO",
         "IsRequired": true
       }
     ],
