@@ -1,3 +1,14 @@
+// показ сообщения об устаревшей сессии
+document.addEventListener("DOMContentLoaded", () => {
+    expiredMessage = localStorage.getItem('expiredMessage');
+	if (expiredMessage) {
+		const expiredMessageElement = document.querySelector(".expiredSessionMessage");
+		expiredMessageElement.classList.remove('display-none');
+		localStorage.removeItem('expiredMessage');
+	}
+ });
+
+
 // скрытие и показ пароля через нажатие на "глаз"
 function showHidePassword(target) {
 	var input = target.closest('.password-wrapper').querySelector('.form-input');
@@ -107,7 +118,7 @@ class FormsValidation {
 				loginInput.value = digitsOnly;
 			}
 
-			makeRequest();
+			makeLoginRequest();
 		}
 	}
 
@@ -129,7 +140,7 @@ class FormsValidation {
 
 new FormsValidation();
 
-function makeRequest() {
+function makeLoginRequest() {
 	const formElement = document.querySelector('[data-js-form]');
 	const formData = new FormData(formElement);
 	const formDataObject = Object.fromEntries(formData);
@@ -143,23 +154,59 @@ function makeRequest() {
 	})
 	.then(async (response) => {
 		if (!response.ok) {
-			if (response.status == 401) {
+			const json = await response.json();
+			if (json.message === "User doesn't exist" || json.message === "Invalid password") {
 				throw new Error('Неверный логин или пароль');
 			}
-
 			throw new Error('Что-то пошло не так, попробуйте еще раз');
 		}
 		return response.json();
 	})
-	.then((json) => {
-		Object.entries(json).forEach(([name, value]) => {
-			document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
-		});
-
+	.then(async (json) => {
+		document.cookie = `token=${encodeURIComponent(json.token)};expires=${(new Date(json.expires)).toUTCString()}`;
+		await saveUserDataToLocalStorage();
 		window.location.href = './mentors_cards_list.html';
 	})
 	.catch((error) => {
 		const formErrorsElement = document.querySelector("[data-js-form-errors]");
 		formErrorsElement.innerHTML = `${error.message}`;
 	})
+}
+
+async function saveUserDataToLocalStorage() {
+	try {
+        const token = getCookie('token');
+
+        const response = await fetch('http://89.169.3.43/api/users/me', {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`${response.status}`);
+        }
+
+        const userData = await response.json();
+
+		localStorage.setItem('firstName',`${userData.firstName}`);
+		localStorage.setItem('lastName',`${userData.lastName}`);
+		localStorage.setItem('patronymic',`${userData.middleName}`);
+		localStorage.setItem('id',`${userData.id}`);
+
+    } catch (error) {
+        throw error;
+    }
+}
+
+function getCookie(name) {
+  for (const entryStr of document.cookie.split('; ')) {
+    const [entryName, entryValue] = entryStr.split('=');
+
+    if (decodeURIComponent(entryName) === name) {
+        return entryValue;
+    }
+  }
 }

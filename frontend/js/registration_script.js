@@ -161,8 +161,10 @@ function makeRegisterRequest() {
 		}
 		return response.json();
 	})
-	.then((json) => {
-		makeLoginRequest(json.user.login, json.user.password);
+	.then(async ({tokenResponse}) => {
+		document.cookie = `token=${encodeURIComponent(tokenResponse.token)};expires=${(new Date(tokenResponse.expires)).toUTCString()}`;
+		await saveUserDataToLocalStorage();
+		window.location.href = './mentors_cards_list.html';
 	})
 	.catch((error) => {
 		const formErrorsElement = document.querySelector("[data-js-form-errors]");
@@ -170,34 +172,41 @@ function makeRegisterRequest() {
 	})
 }
 
-function makeLoginRequest(login, password) {
-	const formDataObject = { 
-		"login": login,
-		"password": password
-	}
 
-	fetch('http://89.169.3.43/api/auth/login', {
-		method: 'post',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({...formDataObject})
-	})
-	.then(async (response) => {
-		if (!response.ok) {
-			throw new Error('Регистрация прошла успешно, но произошла ошибка при входе. Попробуйте войти самостоятельно');
-		}
-		return response.json();
-	})
-	.then((json) => {
-		Object.entries(json).forEach(([name, value]) => {
-			document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
-		});
+async function saveUserDataToLocalStorage() {
+	try {
+        const token = getCookie('token');
 
-		window.location.href = './mentors_cards_list.html';
-	})
-	.catch((error) => {
-		const formErrorsElement = document.querySelector("[data-js-form-errors]");
-		formErrorsElement.innerHTML = `${error.message}`;
-	})
+        const response = await fetch('http://89.169.3.43/api/users/me', {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`${response.status}`);
+        }
+
+        const userData = await response.json();
+
+		localStorage.setItem('firstName',`${userData.firstName}`);
+		localStorage.setItem('lastName',`${userData.lastName}`);
+		localStorage.setItem('patronymic',`${userData.middleName}`);
+		localStorage.setItem('id',`${userData.id}`);
+
+    } catch (error) {
+        throw error;
+    }
+}
+
+function getCookie(name) {
+  for (const entryStr of document.cookie.split('; ')) {
+    const [entryName, entryValue] = entryStr.split('=');
+
+    if (decodeURIComponent(entryName) === name) {
+        return entryValue;
+    }
+  }
 }
