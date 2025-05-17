@@ -46,6 +46,21 @@ function renderMentorCard(mentor) {
     }
 
     document.querySelector('.experience-total b').textContent = totalYears
+
+    const activityAreasList = document.querySelector('.activity-areas-list')
+    activityAreasList.innerHTML = ''
+
+    if (mentor.categories && Array.isArray(mentor.categories) && mentor.categories.length > 0) {
+        mentor.categories.forEach(category => {
+            const li = document.createElement('li')
+            li.textContent = category.name
+            activityAreasList.appendChild(li)
+        })
+    } else {
+        const li = document.createElement('li')
+        li.textContent = 'Сферы деятельности не указаны'
+        activityAreasList.appendChild(li)
+    }
 }
 
 function pluralizeYears (n) {
