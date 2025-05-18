@@ -53,6 +53,7 @@ function renderMentorCard(mentor) {
     if (mentor.categories && Array.isArray(mentor.categories) && mentor.categories.length > 0) {
         mentor.categories.forEach(category => {
             const li = document.createElement('li')
+            li.className ='activity-area'
             li.textContent = category.name
             activityAreasList.appendChild(li)
         })
