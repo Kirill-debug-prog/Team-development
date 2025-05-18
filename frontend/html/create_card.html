@@ -104,7 +104,7 @@
                             <input id="company-1" class="input" type="text" placeholder="Компания">
                             
                             <label for="duration-1" class="visually-hidden">Срок работы</label>
-                            <input id="duration-1" class="input" type="text" placeholder="Срок работы (например, 2 года)">                                           
+                            <input id="duration-1" class="input duration" type="number" placeholder="Срок работы (в годах)">
                         </div>
                     </div>
 
@@ -112,13 +112,9 @@
                 </div>
                 
                 <div class="dropdown-container">
-                    <div class="dropdown" onclick="toggleDropdown()">Компетенции</div>
+                    <div class="dropdown" onclick="toggleDropdown()">Сфера деятельности</div>
                     <div class="dropdown-options" id="options">
-                        <label><input type="checkbox" value="it"> Информационные технологии</label>
-                        <label><input type="checkbox" value="finance"> Финансы</label>
-                        <label><input type="checkbox" value="marketing"> Маркетинг</label>
-                        <label><input type="checkbox" value="healthcare"> Здравоохранение</label>
-                        <label><input type="checkbox" value="education"> Образование</label>
+                        <!-- Сферы деятельности будут добавляться сюда динамически -->
                     </div>
                 </div>
 
