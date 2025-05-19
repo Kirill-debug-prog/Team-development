@@ -98,8 +98,8 @@ body {
   position: sticky;
   top: 10px;
   min-width: clamp(280px, 23.5vw, 400px); 
-  height: 720px;
-  padding: 20px;
+  height: fit-content;
+  padding: 15px;
   background-color: var(--color-light);
   box-shadow: 4px 4px 4px 0 rgba(0, 0, 0, 0.3);
   border-radius: 12px;

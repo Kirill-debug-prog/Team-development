@@ -53,10 +53,7 @@ function renderMentorCard(mentor) {
     if (mentor.categories && Array.isArray(mentor.categories) && mentor.categories.length > 0) {
         mentor.categories.forEach(category => {
             const li = document.createElement('li')
-<<<<<<< HEAD
-=======
             li.className ='activity-area'
->>>>>>> frontend
             li.textContent = category.name
             activityAreasList.appendChild(li)
         })
@@ -75,8 +72,4 @@ function pluralizeYears (n) {
     if (lastDigit === 1) return `${n} год`
     if (lastDigit >= 2 && lastDigit <= 4) return `${n} года`
     return `${n} лет`
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> frontend
