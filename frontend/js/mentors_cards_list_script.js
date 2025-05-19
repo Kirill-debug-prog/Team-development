@@ -60,11 +60,7 @@ function createMentorCard (card) {
         </div>
     
         <div class="card-footer">
-<<<<<<< HEAD
             <div class="card-price">${card.pricePerHours}</div>
-=======
-            <div class="card-price">${card.pricePerHours} руб.</div>
->>>>>>> frontend
             <a class="show-full-card-button" href="./mentor_card.html?id=${card.id}">
                 Подробнее
             </a>
@@ -310,20 +306,14 @@ document.addEventListener("click", function(event) {
 });
 
 async function applySortingAndReload() {
-<<<<<<< HEAD
     const sortBy = document.getElementById('variant').value
     const sortDirection = document.getElementById('route').value
-=======
-    const sortBy = "price"
-    const sortDirection = document.getElementById('variant').value
->>>>>>> frontend
 
     const url = new URL('http://89.169.3.43/api/consultant-cards')
     url.searchParams.append('sortBy', sortBy)
     url.searchParams.append('sortDirection', sortDirection)
 
     try {
-<<<<<<< HEAD
         const respons = await fetch(url)
         if (respons.ok) {
             throw new Error("Ошибка при загрузке данных с сервера");
@@ -331,25 +321,6 @@ async function applySortingAndReload() {
 
         const data = await respons.json()
         createMentorCard(data)
-=======
-        const response = await fetch(url)
-        if (!response.ok) {
-            throw new Error("Ошибка при загрузке данных с сервера");
-        }
-
-        const cards = await response.json()
-
-        const container = document.getElementById('mentor-card-container')
-        container.innerHTML = '' // очищаем контейнер перед добавлением новых карточек
-        if (cards.length === 0) {
-            container.innerHTML = '<p>Карты консультантов не найдены</p>'
-        }
-
-        cards.forEach(card => {
-            const cardElement = createMentorCard(card)
-            container.appendChild(cardElement)
-        });
->>>>>>> frontend
     } catch (error) {
         console.error('Ошибка запроса', error)
     }
