@@ -71,7 +71,7 @@
                             src="../images/default_user_photo.jpg" 
                             alt="Аватар пользователя"
                             width="41" height="41" />
-                        <div class="user-names">Фамилия Имя</div>
+                        <div class="user-names"><span class="last-name"></span> <span class="first-name"></span></div>
                     </div>
                 </div>
             </div>
@@ -85,10 +85,10 @@
                 <img class="user-avatar"
                     src="../images/default_user_photo.jpg"
                     alt="Фотография профиля"/>
-                <div class="user-name"><span class="last-name">Петров</span> <span class="first-name">Александр</span> <span class="patronymic">Сергеевич</span></div>
+                <div class="user-name"><span class="last-name"></span> <span class="first-name"></span> <span class="patronymic"></span></div>
                 <div class="profile-actions-wrapper">
                     <button class="button" type="button" onclick="modifyUserWindow()">Редактировать</button>
-                    <button class="button" type="button" onclick="modifyingPassword.showModal()">Изменить пароль</button>
+                    <button class="button" type="button" onclick="modifyPasswordWindow()">Изменить пароль</button>
                 </div>
             </div>
         </header>
@@ -96,104 +96,8 @@
             <h2 class="profile-body-title">Мои анкеты</h2>
             <a href="./create_card.html" class="button create-card-button">Создать анкету</a>
             <section class="card-list">
-                <article class="mentor-card">
-                    <div class="card-owner">
-                        <img class="card-user-avatar" 
-                            src="../images/default_user_photo.jpg" 
-                            alt="Аватар консультанта"
-                            width="76" height="76"
-                        />
-                        <div class="card-user-name">Петров Александр</div>
-                    </div>
-
-                    <h3 class="card-title">
-                        Product Owner в Revolut
-                    </h3>
-
-                    <div class="card-experience">Опыт работы: <span class="work-experience">8 лет</span></div>
-
-                    <div class="card-short-description">
-                        Расскажу как войти в ИТ даже без знаний разработки и быстро расти в крупных ИТ корпорациях на основании своего опыта: в Тинькофф за 5 лет прошел путь от системного аналитика до руководителя 3 команд разработки (50+ сотрудников).
-                    </div>
-                    
-                    <div class="card-footer">
-                        <div class="card-price">6000 руб.</div>
-                        <a class="show-full-card-button" href="./mentor_card.html">
-                            Подробнее...
-                        </a>
-                    </div>
-
-                    <div class="card-actions-wrapper">
-                        <a href="./modify_card.html" class="transparent-button">Редактировать</a>
-                        <button class="transparent-button delete-card-button" type="button">Удалить</button>
-                    </div>
-                </article>
-
-                <article class="mentor-card">
-                    <div class="card-owner">
-                        <img class="card-user-avatar" 
-                            src="../images/default_user_photo.jpg" 
-                            alt="Аватар консультанта"
-                            width="76" height="76"
-                        />
-                        <div class="card-user-name">Петров Александр</div>
-                    </div>
-
-                    <h3 class="card-title">
-                        Product Owner в Revolut
-                    </h3>
-
-                    <div class="card-experience">Опыт работы: <span class="work-experience">8 лет</span></div>
-
-                    <div class="card-short-description">
-                        Расскажу как войти в ИТ даже без знаний разработки и быстро расти в крупных ИТ корпорациях на основании своего опыта: в Тинькофф за 5 лет прошел путь от системного аналитика до руководителя 3 команд разработки (50+ сотрудников).
-                    </div>
-                    
-                    <div class="card-footer">
-                        <div class="card-price">6000 руб.</div>
-                        <a class="show-full-card-button" href="./mentor_card.html">
-                            Подробнее...
-                        </a>
-                    </div>
-
-                    <div class="card-actions-wrapper">
-                        <a href="./modify_card.html" class="transparent-button">Редактировать</a>
-                        <button class="transparent-button delete-card-button" type="button">Удалить</button>
-                    </div>
-                </article>
-
-                <article class="mentor-card">
-                    <div class="card-owner">
-                        <img class="card-user-avatar" 
-                            src="../images/default_user_photo.jpg" 
-                            alt="Аватар консультанта"
-                            width="76" height="76"
-                        />
-                        <div class="card-user-name">Петров Александр</div>
-                    </div>
-
-                    <h3 class="card-title">
-                        Product Owner в Revolut
-                    </h3>
-
-                    <div class="card-experience">Опыт работы: <span class="work-experience">8 лет</span></div>
-
-                    <div class="card-short-description">
-                        Расскажу как войти в ИТ даже без знаний разработки и быстро расти в крупных ИТ корпорациях на основании своего опыта: в Тинькофф за 5 лет прошел путь от системного аналитика до руководителя 3 команд разработки (50+ сотрудников).
-                    </div>
-                    
-                    <div class="card-footer">
-                        <div class="card-price">6000 руб.</div>
-                        <a class="show-full-card-button" href="./mentor_card.html">
-                            Подробнее...
-                        </a>
-                    </div>
-
-                    <div class="card-actions-wrapper">
-                        <a href="./modify_card.html" class="transparent-button">Редактировать</a>
-                        <button class="transparent-button delete-card-button" type="button">Удалить</button>
-                    </div>
-                </article>
+                <!-- динамическая загрузка -->
+                 <div class="text-centered"></div>
             </section>
         </div>
     </main>
@@ -252,7 +156,7 @@
         <div class="dialog-title">Редактировать</div>
 
         <div class="avatar">
-            <div class="image-before">
+            <div class="avatar-before">
                 <img class="dialog-user-avatar" src="../images/default_user_photo.jpg" alt="Фотография вашего профиля">
             </div>
             
@@ -264,15 +168,26 @@
             </div>
         </div>
 
-        <form action="" class="dialog-form">
+        <form action="" class="dialog-form" data-modify-user-info-form>
             <label class="dialog-label" for="last-name">Фамилия</label>
-            <input class="dialog-input" id="last-name" name="last_name" required maxlength="30"/>
+            <div>
+                <input class="dialog-input" id="last-name" name="lastName" required minlength="2" maxlength="50" pattern="^[a-zA-Zа-яА-Я \-]+$"/>
+                <span class="field-errors" data-js-form-field-errors></span>
+            </div>
 
             <label class="dialog-label" for="first-name">Имя</label>
-            <input class="dialog-input" id="first-name" name="first_name" required required maxlength="30"/>
+            <div>
+                <input class="dialog-input" id="first-name" name="firstName" required minlength="2" maxlength="50" pattern="^[a-zA-Zа-яА-Я \-]+$"/>
+                <span class="field-errors" data-js-form-field-errors></span>
+            </div>
 
             <label class="dialog-label" for="patronymic">Отчество</label>
-            <input class="dialog-input" id="patronymic" name="patronymic" required maxlength="30"/>
+            <div>
+                <input class="dialog-input" id="patronymic" name="middleName" minlength="0" maxlength="50" pattern="^[a-zA-Zа-яА-Я \-]+$"/>
+                <span class="field-errors" data-js-form-field-errors></span>
+            </div>
+            
+            <div class="form-errors" data-js-form-errors></div>
         </form>
 
         <div class="dialog-actions-wrapper">
@@ -283,24 +198,29 @@
 
     <dialog class="modify-password-window" id="modifyingPassword">
         <div class="dialog-title">Смена пароля</div>
-        <form action="" class="dialog-form">
-            <label class="dialog-label" for="old-password">Старый пароль</label>
+        <form action="" class="dialog-form" data-modify-password-form>
+            <label class="dialog-label" for="oldPassword">Старый пароль</label>
             <div class="password-input-wrapper">
-                <input class="dialog-input" id="old-password" type="password" name="old_password" required/>
+                <input class="dialog-input" id="oldPassword" type="password" name="oldPassword" required  minlength="8" maxlength="100">
                 <div class="show-hide-password" onclick="showHidePassword(this)"></div>
+                <span class="field-errors" data-js-form-field-errors></span>
             </div>
 
-            <label class="dialog-label" for="new-password">Новый пароль</label>
+            <label class="dialog-label" for="newPassword">Новый пароль</label>
             <div class="password-input-wrapper">
-                <input class="dialog-input" id="new-password" type="password" name="new_password" required/>
+                <input class="dialog-input" id="newPassword" type="password" name="newPassword" required  minlength="8" maxlength="100"/>
                 <div class="show-hide-password" onclick="showHidePassword(this)"></div>
+                <span class="field-errors" data-js-form-field-errors></span>
             </div>
 
-            <label class="dialog-label" for="new-password-repeated">Повторите новый пароль</label>
+            <label class="dialog-label" for="newPasswordRepeated">Повторите новый пароль</label>
             <div class="password-input-wrapper">
-                <input class="dialog-input" id="new-password-repeated" type="password" name="new_password_repeated" required/>
+                <input class="dialog-input" id="newPasswordRepeated" type="password" name="confirmNewPassword" required  minlength="8" maxlength="100"/>
                 <div class="show-hide-password" onclick="showHidePassword(this)"></div>
+                <span class="field-errors" data-js-form-field-errors></span>
             </div>
+
+            <div class="form-errors" data-js-form-errors></div>
         </form>
 
         <div class="dialog-actions-wrapper">
@@ -314,6 +234,20 @@
         <div class="dialog-actions-wrapper">
             <button class="dialog-button" onclick="removeCard(this)">Да</button>
             <button class="dialog-button" onclick="closeWindow(this)">Отмена</button>
+        </div>
+    </dialog>
+
+    <dialog class="showing-error-window" id="showingError">
+        <div class="dialog-text">Произошла ошибка. Попробуйте еще раз</div>
+        <div class="dialog-actions-wrapper">
+            <button class="dialog-button" onclick="closeWindow(this)">Ок</button>
+        </div>
+    </dialog>
+
+    <dialog class="showing-success-window" id="showingSuccess">
+        <div class="dialog-text">Изменения успешно сохранены</div>
+        <div class="dialog-actions-wrapper">
+            <button class="dialog-button" onclick="closeWindow(this)">Ок</button>
         </div>
     </dialog>
 

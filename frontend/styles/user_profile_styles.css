@@ -99,6 +99,12 @@ dialog {
   margin-right: auto;
 }
 
+.text-centered {
+  text-align: center;
+  font-weight: 400;
+  padding-block: 60px;
+}
+
 .mentor-card {
   display: flex;
   flex-direction: column;
@@ -129,6 +135,15 @@ dialog {
 .card-title{
   font-weight: 500;
   font-size: 20px;
+}
+
+.card-short-description {
+  display: -webkit-box;
+  line-clamp: 3;   
+  -webkit-line-clamp: 3;      
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-experience,
@@ -208,7 +223,7 @@ dialog {
   border-radius: 20px;
   border: none;
   padding: 25px 45px;
-  background-image: linear-gradient(180deg, #ceddd6 0%, #b9babf 50%, #f1bfa4 100%);
+  background-image: linear-gradient(180deg, #ffffff 0%, #ffd3bb 100%);
   outline: none;
 }
 
@@ -228,7 +243,7 @@ dialog::backdrop {
   position: relative;
 }
 
-.image-before::after {
+.avatar-before::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -327,6 +342,7 @@ input#avatar {
   font-weight: 400;
   padding-block: 5px;
   width: 315px;
+  height: 31px;
 }
 
 .dialog-input[type="password"] {
@@ -355,29 +371,58 @@ input#avatar {
 }
 
 .modify-password-window .dialog-form {
-  margin-block: 27px 140px;
+  margin-block: 27px 100px;
 }
 
 .password-input-wrapper {
-  display: flex;
   position: relative;
 }
 
-.password-input-wrapper:not(:last-child) {
-  margin-bottom: 20px;
+.modify-password-window .dialog-label:not(:first-child) {
+  margin-top: 25px;
 }
 
 .show-hide-password {
   position: absolute;
   right: 0;
+  top: 0;
   width: 30px;
-  height: 100%;
+  height: 31px;
   margin-right: 5px;
   background: url('../icons/opened_eye.svg') center/70% no-repeat;
 }
 
 .to-hide {
   background: url('../icons/closed_eye.svg') center/70% no-repeat;
+}
+
+.field-errors {
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
+  margin-top: 5px;
+  font-size: 14px;
+  color: red;
+  line-height: 1.1;
+}
+
+.field-errors:empty {
+  display: none;
+}
+
+.form-errors {
+  margin-top: 15px;
+  font-size: 14px;
+  background-color: rgb(255, 195, 195);
+  border-radius: 5px;
+  width: 100%;
+  padding: 10px;
+  color: red;
+  line-height: 1.1;
+}
+
+.form-errors:empty {
+  display: none;
 }
 
 .dialog-text {
@@ -389,7 +434,10 @@ input#avatar {
   padding-inline: 20px;
 }
 
-
+.showing-error-window .dialog-button,
+.showing-success-window .dialog-button {
+  margin-left: auto;
+}
 
 
 
@@ -475,6 +523,10 @@ input#avatar {
   .create-card-button {
     position: static;
     margin-bottom: 20px;
+  }
+
+  .mentor-card:not(:last-child) {
+    margin-bottom: 30px;
   }
 
   .card-user-avatar {

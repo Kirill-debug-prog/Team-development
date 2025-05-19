@@ -98,13 +98,19 @@ body {
   position: sticky;
   top: 10px;
   min-width: clamp(280px, 23.5vw, 400px); 
+<<<<<<< HEAD
   height: 720px;
   padding: 20px;
+=======
+  height: fit-content;
+  padding: 15px;
+>>>>>>> frontend
   background-color: var(--color-light);
   box-shadow: 4px 4px 4px 0 rgba(0, 0, 0, 0.3);
   border-radius: 12px;
   font-size: 18px;
   z-index: 1000;
+  line-height: 1.3;
 }
 
 .search-filter .input::placeholder {
@@ -149,7 +155,7 @@ body {
 .filter-form {
   display: flex;
   flex-direction: column;
-  row-gap: 24px;
+  row-gap: 20px;
 }
 
 .complex-input-wrapper {
@@ -252,7 +258,6 @@ input[type="number"]::-webkit-inner-spin-button {
 .filter-submit-button {
   color: var(--color-light);
   background-color: var(--color-accent);
-  margin-top: 30px;
 }
 
 .filter-reset-button {
@@ -329,13 +334,15 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .dropdown {
-  width: auto;
+  width: 100%;
   padding: 10px;
   border: 1px solid #CCC;
   border-radius: 5px;
   cursor: pointer;
   background-color: #E5E4E4;
   text-align: center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .dropdown-options {
