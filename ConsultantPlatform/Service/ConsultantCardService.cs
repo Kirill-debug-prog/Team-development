@@ -500,15 +500,16 @@ namespace ConsultantPlatform.Service
                 cardId, categoryIdsToRemoveLink.Count, categoryIdsToAddLink.Count);
         }
 
-        /// <summary>
-        /// Удаляет карточку консультанта. Проверяет владение. Каскадное удаление опыта настроено в модели/БД.
-        /// </summary>
         public async Task<bool> DeleteConsultantCardAsync(Guid cardId, Guid currentUserId)
         {
             _logger.LogInformation("Попытка удалить карточку консультанта {CardId} пользователем {UserId}", cardId, currentUserId);
             try
             {
-                var existingCard = await _context.MentorCards.FindAsync(cardId);
+                // Загружаем карточку ВМЕСТЕ со связанными MentorCardsCategories
+                var existingCard = await _context.MentorCards
+                                                 .Include(mc => mc.MentorCardsCategories) // <--- ВАЖНО: Загружаем связи
+                                                 .FirstOrDefaultAsync(mc => mc.Id == cardId);
+
                 if (existingCard == null)
                 {
                     _logger.LogWarning("Попытка удалить несуществующую карточку консультанта с ID {CardId}", cardId);
@@ -521,9 +522,30 @@ namespace ConsultantPlatform.Service
                     throw new UnauthorizedAccessException("Пользователь не авторизован для удаления этой карточки консультанта.");
                 }
 
+                // 1. Удаляем связанные записи из MentorCards_Category
+                if (existingCard.MentorCardsCategories.Any())
+                {
+                    _logger.LogInformation("Удаление {Count} связей с категориями для карточки {CardId}", existingCard.MentorCardsCategories.Count, cardId);
+                    _context.MentorCardsCategories.RemoveRange(existingCard.MentorCardsCategories);
+                    // SaveChangesAsync() здесь не нужен, все сохранится одним вызовом ниже
+                }
+
+                // Загружаем связанные Experiences, если они не были загружены ранее
+                var experiencesToDelete = await _context.Experiences
+                                                        .Where(e => e.MentorCardId == cardId)
+                                                        .ToListAsync();
+                if (experiencesToDelete.Any())
+                {
+                    _logger.LogInformation("Удаление {Count} записей опыта для карточки {CardId}", experiencesToDelete.Count, cardId);
+                    _context.Experiences.RemoveRange(experiencesToDelete);
+                }
+
+
+                // 2. Теперь удаляем саму карточку
                 _context.MentorCards.Remove(existingCard);
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("Карточка консультанта с ID {CardId} успешно удалена пользователем {UserId}", cardId, currentUserId);
+
+                await _context.SaveChangesAsync(); // Один вызов для сохранения всех изменений
+                _logger.LogInformation("Карточка консультанта с ID {CardId} и связанные данные успешно удалены пользователем {UserId}", cardId, currentUserId);
                 return true;
             }
             catch (UnauthorizedAccessException)
@@ -533,6 +555,11 @@ namespace ConsultantPlatform.Service
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Ошибка базы данных при удалении карточки консультанта {CardId} пользователем {UserId}.", cardId, currentUserId);
+                // Можно добавить более детальный анализ InnerException, если это PostgresException
+                if (ex.InnerException is Npgsql.PostgresException pgEx)
+                {
+                    _logger.LogError("PostgresException Details: SqlState={SqlState}, MessageText={MessageText}", pgEx.SqlState, pgEx.MessageText);
+                }
                 throw new ApplicationException("Ошибка удаления карточки консультанта из базы данных.", ex);
             }
             catch (Exception ex)
