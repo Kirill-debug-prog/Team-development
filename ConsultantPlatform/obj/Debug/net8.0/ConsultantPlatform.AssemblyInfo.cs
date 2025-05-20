@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ConsultantPlatform")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c7b977ba63524e2f76195ced444402941474c25b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7302fb023a5afe70f7f5ed380f9dfd9f2a4bc404")]
 [assembly: System.Reflection.AssemblyProductAttribute("ConsultantPlatform")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ConsultantPlatform")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
