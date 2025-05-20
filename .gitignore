@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Compiled output
+[Bb]in/
+[Oo]bj/
+
 # User-specific files
 *.rsuser
 *.suo
