@@ -142,8 +142,8 @@ chatListElement.addEventListener('click', (event) => {
                         width="55" height="55"
                 />
                 <div class="chat-info-wrapper">
-                    <div class="current-interlocutor-name">Фамилия Имя</div>
-                    <div class="current-chat-title">Краткое описание (title)</div>
+                    <div class="current-interlocutor-name">${chat.querySelector('.interlocutor-name').innerHTML}</div>
+                    <div class="current-chat-title">${chat.querySelector('.chat-title').innerHTML}</div>
                 </div>
             </header>
             <div class="chat-body">
