@@ -1,3 +1,38 @@
+//проверка на авторизацию
+if (getCookie('token')) {
+    setUserName();
+} else {
+    window.location.href = './login.html';
+}
+
+function setUserName() {
+    document.querySelector('span.last-name').innerHTML = `${localStorage.getItem('lastName')}`;
+    document.querySelector('span.first-name').innerHTML = `${localStorage.getItem('firstName')}`;
+}
+
+function logout() {
+    localStorage.removeItem('firstName');
+	localStorage.removeItem('lastName');
+	localStorage.removeItem('patronymic');
+    localStorage.removeItem('id');
+
+    document.cookie = `token=${getCookie('token')};max-age=-1`;
+
+    window.location.href = './mentors_cards_list.html';
+}
+
+function getCookie(name) {
+  for (const entryStr of document.cookie.split('; ')) {
+    const [entryName, entryValue] = entryStr.split('=');
+
+    if (decodeURIComponent(entryName) === name) {
+        return entryValue;
+    }
+  }
+}
+
+
+
 let experienceCount = 1;
 
 function addExperience() {

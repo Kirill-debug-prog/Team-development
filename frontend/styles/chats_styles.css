@@ -104,6 +104,10 @@ main {
   aspect-ratio: 1;
 }
 
+.unread-messages-counter:empty {
+  display: none;
+}
+
 .current-chat {
   display: flex;
   flex-direction: column;
@@ -262,6 +266,13 @@ main {
   align-self: flex-start;
 }
 
+.chats-none {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
 @media (hover: hover) {
   .chat-item:not(.picked-chat):hover {
     background-color: #f0eded;
@@ -354,6 +365,10 @@ main {
 
   .close-chat-button {
     display: none;
+  }
+
+  .picked-chat {
+    box-shadow: none;
   }
 
   .mobile-close-chat-button {

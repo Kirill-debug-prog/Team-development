@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MentorsConnect</title>
+    <title>Мой профиль — MentorsConnect</title>
     <link rel="icon" href="../favicon.ico" sizes="32x32">
     <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="../images/apple-touch-icon.png">
@@ -18,13 +18,13 @@
         </div>
         <div class="header-container">
             <div class="header-body">
-                <div class="header-logo">
+                <a class="header-logo" href="./mentors_cards_list.html">
                     <img class="header-logo-image"
                         src="../icons/logo.svg" 
                         alt="Лого"
                         width="41" height="37" />
                     <div class="header-logo-name">MentorsConnect</div>
-                </div>
+                </a>
                 <div class="header-menu-user-wrapper">
                     <nav class="header-menu">
                         <ul class="header-menu-list">
@@ -56,7 +56,7 @@
                                 </a> 
                             </li>
                             <li class="header-menu-item">
-                                <a class="header-menu-link" href="./login.html">
+                                <a class="header-menu-link" onclick="logout()">
                                     <img class="header-menu-icon"
                                         src="../icons/header_menu/4.svg" 
                                         alt=""
@@ -66,12 +66,13 @@
                             </li>
                         </ul>
                     </nav>
+
                     <div class="header-user">
                         <img class="header-user-avatar" 
                             src="../images/default_user_photo.jpg" 
                             alt="Аватар пользователя"
                             width="41" height="41" />
-                        <div class="user-names"><span class="last-name"></span> <span class="first-name"></span></div>
+                        <div class="user-names"><span class="last-name"></span> <span class="first-name"></div>
                     </div>
                 </div>
             </div>

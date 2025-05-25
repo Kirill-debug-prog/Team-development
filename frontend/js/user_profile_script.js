@@ -1,13 +1,9 @@
-// загрузка инфы о профиле
-document.addEventListener("DOMContentLoaded", async() => {
-    try {
-        setUserName();
-        await loadUserCards();
-    } catch (error) {
-        document.body.innerHTML = `Ошибка "${error.message}". Попробуйте перезагрузить страницу`;
-    }
-    
- });
+//проверка на авторизацию
+if (getCookie('token')) {
+    setUserName();
+} else {
+    window.location.href = './login.html';
+}
 
 function setUserName() {
     const lastNameElements = document.querySelectorAll('span.last-name');
@@ -21,6 +17,17 @@ function setUserName() {
     });
 
     document.querySelector('span.patronymic').innerHTML = `${localStorage.getItem('patronymic')}`;
+}
+
+function logout() {
+    localStorage.removeItem('firstName');
+	localStorage.removeItem('lastName');
+	localStorage.removeItem('patronymic');
+    localStorage.removeItem('id');
+
+    document.cookie = `token=${getCookie('token')};max-age=-1`;
+
+    window.location.href = './mentors_cards_list.html';
 }
 
 function redirectToLogin() {
@@ -43,6 +50,18 @@ function getCookie(name) {
     }
   }
 }
+
+
+
+
+// загрузка инфы о профиле
+document.addEventListener("DOMContentLoaded", async() => {
+    try {
+        await loadUserCards();
+    } catch (error) {
+        document.body.innerHTML = `Ошибка "${error.message}". Попробуйте перезагрузить страницу`;
+    }
+ });
 
 async function loadUserCards() {
     try {
@@ -454,7 +473,7 @@ function removeCard(button) {
                 cardToDelete.remove();
                 if (!cardListElement.querySelector('.mentor-card'))
                 {
-                    cardList.innerHTML = `<div class="text-centered">У вас нет анкет</div>`;
+                    cardListElement.innerHTML = `<div class="text-centered">У вас нет анкет</div>`;
                 }
             }
         }

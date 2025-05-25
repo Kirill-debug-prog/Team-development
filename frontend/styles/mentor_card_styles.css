@@ -5,6 +5,7 @@
   --color-dark-grey: #8C8989;
 }
 
+dialog,
 main {
   font-family: 'Inter', sans-serif;
   font-weight: 400;
@@ -71,6 +72,7 @@ main {
   background-color: rgba(89, 129, 106, 0.8);
   border: 1px solid rgba(151, 176, 162, 0.9);
   transition-duration: 0.2s;
+  white-space: nowrap;
 }
 
 @media (hover: hover) {
@@ -163,6 +165,55 @@ main {
   color: var(--color-dark-grey);
 }
 
+dialog {
+  border-radius: 20px;
+  border: none;
+  padding: 25px 30px;
+  background-image: linear-gradient(180deg, #ffffff 0%, #ffd3bb 100%);
+  outline: none;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.dialog-actions-wrapper {
+  display: flex;
+  justify-content: end;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.dialog-button {
+  color: var(--color-light);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
+  width: 108px;
+  text-align: center;
+  background-image: linear-gradient(90deg, #01c7fc 0%, #00a1d8 50%, #0056d6 100%);
+  outline: none;
+}
+
+@media (hover: hover) {
+  .dialog-button:hover {
+    background-image: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
+  }
+}
+
+@media (hover: none) {
+  .dialog-button:active {
+    background-image: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
+  }
+}
+
+.dialog-text {
+  font-weight: 400;
+  text-align: center;
+}
 
 
 @media(max-width: 1300px) {
@@ -265,5 +316,9 @@ main {
 
   .experience-time {
     font-size: 14px;
+  }
+
+  .showing-unauth-window {
+    padding: 15px;
   }
 }
