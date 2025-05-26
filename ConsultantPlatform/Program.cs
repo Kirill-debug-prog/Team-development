@@ -151,6 +151,8 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 
+app.UseRouting();
+
 app.UseCors("SignalRPolicy");
 
 
