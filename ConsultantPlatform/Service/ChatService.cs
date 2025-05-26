@@ -276,8 +276,8 @@ namespace ConsultantPlatform.Service
             }
 
             // Если Client или Mentor не загружены (маловероятно с Include, но для надежности)
-            var clientName = room.Client?.FirstName ?? room.Client?.Login ?? "Клиент";
-            var mentorName = room.Mentor?.FirstName ?? room.Mentor?.Login ?? "Ментор";
+            var clientName = $"{room.Client?.FirstName}  {room.Client?.LastName}" ?? "Клиент";
+            var mentorName = $"{room.Mentor?.FirstName} {room.Mentor?.FirstName + room.Mentor?.LastName}"  ?? "Ментор";
 
 
             return new ChatRoomDTO

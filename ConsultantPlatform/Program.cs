@@ -69,10 +69,19 @@ var key = Encoding.UTF8.GetBytes(keyString);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
-        policy => policy.AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
+    options.AddPolicy("SignalRPolicy", // Название политики
+        policy =>
+        {
+            policy.WithOrigins(
+                      "http://127.0.0.1:5500", // Клиент для локальной разработки
+                      "http://localhost:5500"  // Еще один вариант для локальной разработки
+                                               // Если у вас есть другие домены, где будет клиент, добавьте их сюда:
+                                               // "https://your-production-client.com"
+                  )
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // <--- Это требует явного указания Origins
+        });
 });
 
 builder.Services.AddDbContext<MentiContext>(options =>
@@ -142,7 +151,7 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 
-app.UseCors("AllowAll");
+app.UseCors("SignalRPolicy");
 
 
 app.UseSwagger();
