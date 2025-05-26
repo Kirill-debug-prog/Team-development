@@ -97,7 +97,7 @@ function addChats(chats) {
             chat.setAttribute('data-chat-id',`${id}`);
 
             //определение, кто является собеседником
-            isUserMentor = mentorId === localStorage.getItem('id') ? true : false;
+            const isUserMentor = mentorId === localStorage.getItem('id') ? true : false;
             const interlocutorName = isUserMentor ? clientName : mentorName;
 
             //определение числа непрочитанных сообщений, являются ли они непрочитанными для авторизированного пользователя
@@ -124,109 +124,135 @@ function addChats(chats) {
 
 
 
-
+// --------------------- ОТРИСОВКА ЧАТА ---------------------
 const chatListElement = document.querySelector(".chat-list");
 const currentChatElement = document.querySelector(".current-chat");
 
 chatListElement.addEventListener('click', (event) => {
-    if (event.target.closest('.chat-item')) {
-        chat = event.target.closest('.chat-item');
+    const chat = event.target.closest('.chat-item');
+    if (!chat) return;
 
-        currentChatElement.innerHTML = `
-            <header class="chat-header">
-                <button class="close-chat-button"></button>
-                <button class="mobile-close-chat-button"></button>
-                <img src="../images/default_user_photo.jpg"
-                        alt="Фотография собеседника"
-                        class="current-interlocutor-avatar"
-                        width="55" height="55"
-                />
-                <div class="chat-info-wrapper">
-                    <div class="current-interlocutor-name">${chat.querySelector('.interlocutor-name').innerHTML}</div>
-                    <div class="current-chat-title">${chat.querySelector('.chat-title').innerHTML}</div>
-                </div>
-            </header>
-            <div class="chat-body">
-                <div class="message-list">
-                    <div class="messages-date-block">
-                        <div class="messages-date">Today</div>
-                        <div class="message sender-me">
-                            <div class="message-text">Привет! Как дела?</div>
-                            <span class="message-time">18:16</span>
-                        </div>
-    
-                        <div class="message">
-                            <div class="message-text">Привет! Все отлично, спасибо. У тебя как?</div>
-                            <span class="message-time">18:16</span>
-                        </div>
-    
-                        <div class="message sender-me unread-message">
-                            <div class="message-text">Хорошо</div>
-                            <span class="message-time">18:16</span>
-                        </div>
-                    </div>
-                </div>
-                <form class="message-form" action="">
-                    <textarea class="message-input" placeholder="Напиши сообщение..." id="message-input" spellcheck></textarea>
-                    <button class="send-message-button" type="button">
-                        <span class="visually-hidden">Отправить сообщение</span>
-                        <img class="send-icon" src="../icons/send_icon.svg" alt="" width="30" height="30" />
-                    </button>
-                </form>
-            </div>`;
+    document.querySelector('.message-list')?.remove();
 
-        document.querySelectorAll(".chat-item").forEach( (chatItem) => {chatItem.classList.remove("picked-chat")});
-        chat.classList.add("picked-chat");
+    currentChatElement.innerHTML = `
+        <header class="chat-header">
+            <button class="close-chat-button"></button>
+            <button class="mobile-close-chat-button"></button>
+            <img src="../images/default_user_photo.jpg" alt="Фотография собеседника" class="current-interlocutor-avatar" width="55" height="55" />
+            <div class="chat-info-wrapper">
+                <div class="current-interlocutor-name">${chat.querySelector('.interlocutor-name').innerHTML}</div>
+                <div class="current-chat-title">${chat.querySelector('.chat-title').innerHTML}</div>
+            </div>
+        </header>
+        <div class="chat-body">
+            <div class="message-list"></div>
+            <form class="message-form">
+                <textarea class="message-input" placeholder="Напиши сообщение..." id="message-input" spellcheck></textarea>
+                <button class="send-message-button" type="button">
+                    <span class="visually-hidden">Отправить сообщение</span>
+                    <img class="send-icon" src="../icons/send_icon.svg" alt="" width="30" height="30" />
+                </button>
+            </form>
+        </div>`;
 
+    document.querySelectorAll(".chat-item").forEach(chatItem => chatItem.classList.remove("picked-chat"));
+    chat.classList.add("picked-chat");
 
-        const closeChatButton = document.querySelector(".close-chat-button");
-        closeChatButton.addEventListener("click", () => {
-            currentChatElement.innerHTML = `<p class="pick-chat-text">Выберите чат...</p>`;
-            document.querySelectorAll(".chat-item").forEach( (chatItem) => {chatItem.classList.remove("picked-chat")});
-        })
+    const textareaElement = document.getElementById("message-input");
+    textareaElement.addEventListener("input", () => {
+        textareaElement.style.height = 0;
+        textareaElement.style.height = textareaElement.scrollHeight + "px";
+    });
 
+    const sendButtonElement = document.querySelector(".send-message-button");
+    const messageListElement = document.querySelector(".message-list");
 
-        const textareaElement = document.getElementById("message-input");
-        textareaElement.addEventListener("input", () => {
-            textareaElement.style.height = 0;
-            textareaElement.style.height = textareaElement.scrollHeight + "px";
-        })
+    sendButtonElement.addEventListener("click", async () => {
+        const messageText = textareaElement.value.trim();
+        if (!messageText) return;
 
+        const userId = localStorage.getItem('id');
+        const roomId = chat.getAttribute('data-chat-id');
 
-        sendButtonElement = document.querySelector(".send-message-button");
-        messageListElement = document.querySelector(".message-list");
-        messagesDateBlockElement = document.querySelector(".messages-date-block");
-        sendButtonElement.addEventListener("click", () => {
-            const messageText = textareaElement.value;
-            if (!messageText) return;
-
-            textareaElement.style.height = 0;
+        try {
+            await connection.invoke("SendMessage", roomId, userId, messageText);
             textareaElement.value = '';
-            const messageDate = (new Date()).getHours() + ":" + (new Date()).getMinutes();
+            textareaElement.style.height = 0;
+        } catch (error) {
+            console.error("Ошибка отправки сообщения:", error);
+        }
+    });
 
-            let newMessage = document.createElement("div");
-            newMessage.classList.add("message", "sender-me", "unread-message");
-            newMessage.innerHTML = `
-                <div class="message-text">${messageText}</div>
-                <span class="message-time">${messageDate}</span>                                        
-            `;
-            messagesDateBlockElement.append(newMessage);
+    const closeChatButton = document.querySelector(".close-chat-button");
+    closeChatButton.addEventListener("click", () => {
+        currentChatElement.innerHTML = `<p class="pick-chat-text">Выберите чат...</p>`;
+        document.querySelectorAll(".chat-item").forEach(chatItem => chatItem.classList.remove("picked-chat"));
+    });
 
-            messageListElement.scrollTo({
-                top: messageListElement.scrollHeight
-            });
-        })
+    const chatsElement = document.querySelector(".chats");
+    currentChatElement.classList.add('mobile-display-block');
+    chatsElement.classList.add('mobile-display-none');
 
+    const mobileCloseButtonElement = document.querySelector(".mobile-close-chat-button");
+    mobileCloseButtonElement.addEventListener('click', () => {
+        chatsElement.classList.remove('mobile-display-none');
+        currentChatElement.classList.remove('mobile-display-block');
+    });
 
-        currentChatElement.classList.add('mobile-display-block'); // на ширине моб. устройств будет видет текущий чат
-        const chatsElement = document.querySelector(".chats");
-        chatsElement.classList.add('mobile-display-none'); // на ширине моб. устройств не будет видет список чатов
+    const roomId = chat.getAttribute('data-chat-id');
+    startSignalR(roomId);
+});
 
-        // при закрытии текущего чата, окно тек. чата скрывается, список чатов показывается
-        const mobileCloseButtonElement = document.querySelector(".mobile-close-chat-button");
-        mobileCloseButtonElement.addEventListener('click', () => {
-            chatsElement.classList.remove('mobile-display-none');
-            currentChatElement.classList.remove('mobile-display-block');
-        });
+// --------------------- SIGNALR ---------------------
+let connection;
+
+async function startSignalR(roomId) {
+    if (connection && connection.state === "Connected") {
+        await connection.stop();
     }
-})
+
+    connection = new signalR.HubConnectionBuilder()
+        .withUrl(`http://89.169.3.43/chathub?roomId=${roomId}`, {
+            accessTokenFactory: () => getCookie('token'),
+        })
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+    connection.on("ReceiveMessage", (senderId, messageText) => {
+        console.log("Новое сообщение:", messageText);
+        appendMessageToChat(senderId, messageText);
+    });
+
+    try {
+        await connection.start();
+        console.log("Подключение к SignalR успешно установлено");
+    } catch (error) {
+        console.error("Ошибка подключения к SignalR:", error);
+        setTimeout(() => startSignalR(roomId), 5000);
+    }
+}
+
+function appendMessageToChat(senderId, messageText) {
+    const messageList = document.querySelector('.message-list');
+    const messageDate = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let newMessage = document.createElement("div");
+    newMessage.classList.add("message");
+    if (senderId === localStorage.getItem('id')) {
+        newMessage.classList.add("sender-me");
+    }
+
+    newMessage.innerHTML = `
+        <div class="message-text">${escapeHtml(messageText)}</div>
+        <span class="message-time">${messageDate}</span>
+    `;
+
+    messageList.appendChild(newMessage);
+}
+
+// --------------------- ЭКРАНИРОВАНИЕ ---------------------
+function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.innerText = text;
+    return div.innerHTML;
+}
