@@ -112,6 +112,8 @@ function pluralizeYears (n) {
     if (lastDigit >= 2 && lastDigit <= 4) return `${n} года`
     return `${n} лет`
 }
+<<<<<<< HEAD
+=======
 
 
 function redirectToChat() {
@@ -135,3 +137,4 @@ function redirectToLogin() {
 
     window.location.href = './login.html';
 }
+>>>>>>> frontend
