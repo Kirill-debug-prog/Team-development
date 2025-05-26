@@ -1,3 +1,42 @@
+//проверка на авторизацию
+if (getCookie('token')) {
+    setUserName();
+}
+
+function setUserName() {
+    headerElements = document.querySelectorAll('.authorized-menu, .unauthorized-menu, .header-user');
+    headerElements.forEach((headerElement) => {
+        headerElement.classList.toggle('display-none');
+    })
+
+    document.querySelector('.header-logo').classList.remove('unauth-mobile-show');
+
+    document.querySelector('span.last-name').innerHTML = `${localStorage.getItem('lastName')}`;
+    document.querySelector('span.first-name').innerHTML = `${localStorage.getItem('firstName')}`;
+}
+
+function logout() {
+    localStorage.removeItem('firstName');
+	localStorage.removeItem('lastName');
+	localStorage.removeItem('patronymic');
+    localStorage.removeItem('id');
+
+    document.cookie = `token=${getCookie('token')};max-age=-1`;
+
+    window.location.reload();
+}
+
+function getCookie(name) {
+  for (const entryStr of document.cookie.split('; ')) {
+    const [entryName, entryValue] = entryStr.split('=');
+
+    if (decodeURIComponent(entryName) === name) {
+        return entryValue;
+    }
+  }
+}
+
+
 document.addEventListener("DOMContentLoaded", function () {
     const urlParams = new URLSearchParams(window.location.search)
     const id = urlParams.get('id')
@@ -72,4 +111,27 @@ function pluralizeYears (n) {
     if (lastDigit === 1) return `${n} год`
     if (lastDigit >= 2 && lastDigit <= 4) return `${n} года`
     return `${n} лет`
+}
+
+
+function redirectToChat() {
+    if (!getCookie('token')) {
+        if (localStorage.getItem('id')) {
+            redirectToLogin();
+        }
+        showingUnauth.showModal();
+    }
+
+    //... перенаправление на чат с пользователем
+}
+
+function redirectToLogin() {
+    localStorage.setItem('expiredMessage', 'Ваша сессия устарела.');
+
+    localStorage.removeItem('firstName');
+	localStorage.removeItem('lastName');
+	localStorage.removeItem('patronymic');
+    localStorage.removeItem('id');
+
+    window.location.href = './login.html';
 }

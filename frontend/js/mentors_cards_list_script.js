@@ -1,9 +1,47 @@
-//динамической загрузки карточек с сервера
+//проверка на авторизацию
+if (getCookie('token')) {
+    setUserName();
+}
+
+function setUserName() {
+    headerElements = document.querySelectorAll('.authorized-menu, .unauthorized-menu, .header-user');
+    headerElements.forEach((headerElement) => {
+        headerElement.classList.toggle('display-none');
+    })
+
+    document.querySelector('.header-logo').classList.remove('unauth-mobile-show');
+
+    document.querySelector('span.last-name').innerHTML = `${localStorage.getItem('lastName')}`;
+    document.querySelector('span.first-name').innerHTML = `${localStorage.getItem('firstName')}`;
+}
+
+function logout() {
+    localStorage.removeItem('firstName');
+	localStorage.removeItem('lastName');
+	localStorage.removeItem('patronymic');
+    localStorage.removeItem('id');
+
+    document.cookie = `token=${getCookie('token')};max-age=-1`;
+
+    window.location.reload();
+}
+
+function getCookie(name) {
+  for (const entryStr of document.cookie.split('; ')) {
+    const [entryName, entryValue] = entryStr.split('=');
+
+    if (decodeURIComponent(entryName) === name) {
+        return entryValue;
+    }
+  }
+}
+
+
+//динамическая загрузка карточек с сервера
 document.addEventListener("DOMContentLoaded", function() {
-    //загрузка ккарточки при загрузки страницы
     loadConsultanstCards()
  });
- 
+
  async function loadConsultanstCards() {
     try {
         const response = await fetch('http://89.169.3.43/api/consultant-cards')

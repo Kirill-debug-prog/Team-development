@@ -64,6 +64,19 @@ address {
   column-gap: 20px;
 }
 
+.header-menu-link div,
+.user-names {
+  text-align: center;
+}
+
+.display-none {
+  display: none;
+}
+
+.log-in-item {
+  margin-right: 50px;
+}
+
 @media (hover: hover) {
   .header-menu-link:hover {
     color: #D85B53;
@@ -145,6 +158,10 @@ address {
     display: none;
   }
 
+  .log-in-item {
+    margin-right: 0px;
+  }
+
   .footer {
     font-size: 18px;
   }
@@ -155,6 +172,10 @@ address {
   .header-logo,
   .header-user {
     display: none;
+  }
+
+  .unauth-mobile-show {
+    display: block;
   }
 
   .header-slogan {
@@ -171,6 +192,10 @@ address {
 
   .header-body {
     justify-content: center;
+  }
+
+  .header-body:has(.unauthorized-menu:not(.display-none)) {
+    justify-content: space-between;
   }
 
   .footer {
