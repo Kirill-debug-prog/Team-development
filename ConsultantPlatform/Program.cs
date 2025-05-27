@@ -72,9 +72,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("SignalRPolicy", // Название политики
         policy =>
         {
-            policy.AllowAnyOrigin()
+            policy.WithOrigins("http://localhost:5500")
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         });
 });
 
