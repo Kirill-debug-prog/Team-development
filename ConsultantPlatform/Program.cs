@@ -74,8 +74,7 @@ builder.Services.AddCors(options =>
         {
             policy.AllowAnyOrigin()
                   .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials(); // <--- Это требует явного указания Origins
+                  .AllowAnyMethod();
         });
 });
 
