@@ -2,6 +2,11 @@
 if (getCookie('token')) {
     setUserName();
 } else {
+    // если токен истек (данные в localStorage остаются)
+    if (localStorage.getItem('id')) {
+        redirectToLogin();
+    }
+
     window.location.href = './login.html';
 }
 

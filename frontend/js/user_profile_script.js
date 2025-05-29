@@ -2,6 +2,11 @@
 if (getCookie('token')) {
     setUserName();
 } else {
+    // если токен истек (данные в localStorage остаются)
+    if (localStorage.getItem('id')) {
+        redirectToLogin();
+    }
+    
     window.location.href = './login.html';
 }
 
@@ -102,15 +107,11 @@ function addCards(userCardsData) {
     } else {
         cardList.innerHTML = ``;
 
-        userCardsData.forEach(({id, title, experiences, description, pricePerHours} = cardInfo) => {
-            let experienceDuration = 0;
-            experiences.forEach((experience) => {
-                experienceDuration += experience.durationYears;
-            });
-            
+        userCardsData.forEach(({id, title, experiences, categories, description, pricePerHours} = cardInfo) => {
             let card = document.createElement("article");
             card.classList.add("mentor-card");
             card.setAttribute('data-card-id',`${id}`);
+
             card.innerHTML = `
                 <div class="card-owner">
                     <img class="card-user-avatar" 
@@ -125,7 +126,11 @@ function addCards(userCardsData) {
                     ${title}
                 </h3>
 
-                <div class="card-experience">Опыт работы: <span class="work-experience">${experienceDuration} лет</span></div>
+                <div class="card-experience">Опыт работы: <span class="work-experience">${formatTotalExperience(experiences)}</span></div>
+
+                ${categories.length ?
+                    `<div class="card-categories">Сферы: <span class="lowercase">${categories.map( category => category.name ).join(', ')}</span></div>`
+                    : ''}
 
                 <div class="card-short-description">
                     ${description}
@@ -136,6 +141,14 @@ function addCards(userCardsData) {
                     <a class="show-full-card-button" href="./mentor_card.html?id=${id}">
                         Подробнее...
                     </a>
+                </div>
+
+                <div class="action-menu">
+                    <svg width="6" height="27" viewBox="0 0 6 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="2.55357" cy="2.55357" r="2.55357" fill="#959595"/>
+                        <circle cx="2.55357" cy="13" r="2.55357" fill="#959595"/>
+                        <circle cx="2.55357" cy="23.5536" r="2.55357" fill="#959595"/>
+                    </svg>
                 </div>
 
                 <div class="card-actions-wrapper">
@@ -149,7 +162,19 @@ function addCards(userCardsData) {
     }
 }
 
+function formatTotalExperience(experiences) {
+    if (!Array.isArray(experiences)) return '0 лет'
 
+    const total = experiences.reduce((sum, exp) => sum + (exp.durationYears || 0), 0)
+
+    const lastDigit = total % 10
+    const lastTwoDigits = total % 100
+
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return `${total} лет`
+    if (lastDigit === 1) return `${total} год`
+    if (lastDigit >= 2 && lastDigit <= 4) return `${total} года`
+    return `${total} лет`
+}
 
 // окно редактирования ФИО и авы
 const ImageBeforeElement = document.querySelector('.avatar-before');
@@ -165,6 +190,11 @@ modifyingUserInfo.addEventListener('click', (event) => {
 })
 
 function modifyUserWindow() {
+    // если токен истек
+    if (!getCookie('token')) {
+        redirectToLogin();
+    }
+
     modifyingUserInfo.showModal();
     modifyingUserInfo.querySelector('input#last-name').value = document.querySelector('span.last-name').innerHTML;
     modifyingUserInfo.querySelector('input#first-name').value = document.querySelector('span.first-name').innerHTML;
@@ -351,6 +381,11 @@ const formsValidation = new FormsValidation();
 
 // изменение пароля
 function modifyPasswordWindow() {
+    // если токен истек
+    if (!getCookie('token')) {
+        redirectToLogin();
+    }
+
     modifyingPassword.showModal();
     formsValidation.bindEvents(modifyingPassword);
 }
@@ -487,6 +522,10 @@ const cardListElement = document.querySelector('.card-list');
 cardListElement.addEventListener('click', (event) => {
     if (event.target.matches('.delete-card-button')) {
         cardToDelete = event.target.closest('.mentor-card');
+        cardToDelete.querySelector('.card-actions-wrapper').classList.remove('display-flex');
         deletingСonfirmation.showModal();
+    } else if (event.target.closest('.action-menu')) {
+        const cardActionsWrapper = event.target.closest('.mentor-card').querySelector('.card-actions-wrapper');
+        cardActionsWrapper.classList.toggle('display-flex');
     }
 })

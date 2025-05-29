@@ -42,6 +42,9 @@ dialog {
   font-size: 36px;
   font-weight: 700;
   margin-right: auto;
+
+  overflow-wrap: break-word;
+  max-width: 650px;
 }
 
 .profile-actions-wrapper {
@@ -135,25 +138,88 @@ dialog {
 .card-title{
   font-weight: 500;
   font-size: 20px;
+  color: var(--color-dark);
+}
+
+.card-user-name,
+.card-title,
+.card-experience,
+.card-short-description {
+  overflow-wrap: break-word;
+}
+
+.card-user-name {
+  min-width: 0;
+}
+
+.card-user-name,
+.card-title {
+  margin-right: 145px;
+}
+
+.card-title,
+.card-categories {
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: box;
+  line-clamp: 1;   
+  -webkit-line-clamp: 1;      
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* для браузеров без поддержки line-clamp */
+.card-title,
+.card-categories:not(:--line-clamp) {
+  max-height: 1.3em;
+  overflow: hidden;
 }
 
 .card-short-description {
+  display: -ms-flexbox;
   display: -webkit-box;
+  display: box;
   line-clamp: 3;   
   -webkit-line-clamp: 3;      
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+/* для браузеров без поддержки line-clamp */
+.card-short-description:not(:--line-clamp) {
+  max-height: 3.9em;
+  overflow: hidden;
 }
 
 .card-experience,
 .card-short-description,
+.card-categories,
 .show-full-card-button {
   font-size: 16px;
 }
 
+.lowercase {
+  text-transform: lowercase;
+}
+
 .work-experience {
   color: var(--color-dark);
+}
+
+.card-categories {
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: box;
+  line-clamp: 1;   
+  -webkit-line-clamp: 1;      
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* для браузеров без поддержки line-clamp */
+.card-categories:not(:--line-clamp) {
+  max-height: 1.3em;
+  overflow: hidden;
 }
 
 .card-footer {
@@ -439,7 +505,9 @@ input#avatar {
   margin-left: auto;
 }
 
-
+.action-menu {
+  display: none;
+}
 
 
 
@@ -471,19 +539,39 @@ input#avatar {
     padding-inline: 50px;
   }
 
+  .user-name {
+    max-width: 500px;
+    font-size: 30px;
+  }
+
   .profile-body {
     padding-inline: 50px;
   }
 }
 
 @media (max-width: 1000px) {
+  .container {
+    padding-inline: 20px;
+  }
+  
   .user-avatar {
     width: 100px;
   }
+
+  .user-name {
+    max-width: 300px;
+    font-size: 20px;
+  }
   
-  .user-name,
   .profile-body-title {
     font-size: 26px;
+  }
+
+  .button {
+    font-size: 18px;
+    padding: 5px 10px;
+    height: fit-content;
+    width: fit-content;
   }
 }
 
@@ -495,6 +583,7 @@ input#avatar {
   .container {
     column-gap: 15px;
     padding-inline: 10px;
+    padding-block: 20px;
   }
   
   .user-avatar {
@@ -502,14 +591,20 @@ input#avatar {
   }
 
   .user-name {
-    font-size: 20px;
+    font-size: 16px;
+    max-width: 200px;
+  }
+
+  .card-user-name {
+    margin-right: 15px;
+  }
+
+  .card-title {
+    margin-right: 0px;
   }
   
   .button {
     font-size: 16px;
-    padding: 5px 10px;
-    height: fit-content;
-    width: fit-content;
   }
 
   .profile-body {
@@ -537,6 +632,44 @@ input#avatar {
   .card-price {
     font-size: 16px;
   }
+
+  .action-menu {
+    display: block;
+    padding: 10px;
+    position: absolute;
+    top: 20px;
+    right: 15px;
+  }
+
+  .card-actions-wrapper {
+    display: none;
+    top: 70px;
+    right: 25px;
+    filter: drop-shadow(4px 4px 10px rgb(153, 153, 153));
+    row-gap: 0;
+  }
+
+  .display-flex {
+    display: flex;
+  }
+
+  .card-actions-wrapper a,
+  .card-actions-wrapper button {
+    border: none;
+    background-color: var(--color-light);
+    text-align: start;
+    padding: 8px 18px;
+    width: auto;
+  }
+
+  .card-actions-wrapper a {
+    border-radius: 15px 15px 0 0;
+  }
+
+  .card-actions-wrapper button {
+    border-radius: 0 0 15px 15px;
+    border-top: 2px solid var(--color-dark-grey);
+  }
 }
 
 @media (max-width: 500px) {
@@ -546,7 +679,7 @@ input#avatar {
   }
 
   .user-name {
-    font-size: 16px;
+    max-width: 300px;
   }
 
   .profile-actions-wrapper {
@@ -562,11 +695,10 @@ input#avatar {
   }
 
   .mentor-card {
-    row-gap: 10px;
+    row-gap: 20px;
     padding: 10px 15px;
   }
   
-
   .card-owner {
     column-gap: 10px;
   }
@@ -579,11 +711,9 @@ input#avatar {
     font-size: 16px;
   }
 
-  .card-actions-wrapper {
-    margin-top: 20px;
-    position: static;
-    flex-direction: row;
-    justify-content: space-between;
+  .card-user-name,
+  .card-title {
+    font-size: 18px;
   }
 
   .modify-user-info-window,
