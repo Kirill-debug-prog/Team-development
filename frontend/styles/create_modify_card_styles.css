@@ -5,6 +5,7 @@
   --border-radius: 8px;   
 }
 
+dialog,
 main {
   font-family: 'Inter', sans-serif;
   font-weight: 400;
@@ -203,6 +204,18 @@ input[type="number"]::-webkit-inner-spin-button {
   cursor: pointer;
 }
 
+.picked-field-options {
+  font-size: 16px;
+  text-transform: lowercase;
+}
+
+.hide-options {
+  max-height: 1.5em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .description-input {
   margin-inline: -35px;
   padding-block: 10px;
@@ -234,6 +247,57 @@ input[type="number"]::-webkit-inner-spin-button {
   top: 0;
   height: 100vh;
   background: url('../images/create_card_side_photo.jpg') 0/cover no-repeat #9A9A9A;
+}
+
+dialog {
+  border-radius: 20px;
+  border: none;
+  padding: 25px 45px;
+  background-image: linear-gradient(180deg, #ffffff 0%, #ffd3bb 100%);
+  outline: none;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.dialog-actions-wrapper {
+  display: flex;
+  justify-content: end;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.dialog-button {
+  color: var(--color-light);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
+  width: 108px;
+  text-align: center;
+  background-image: linear-gradient(90deg, #01c7fc 0%, #00a1d8 50%, #0056d6 100%);
+  outline: none;
+}
+
+.dialog-text {
+  font-weight: 400;
+  text-align: center;
+  font-size: 20px;
+}
+
+@media (hover: hover) {
+  .dialog-button:hover {
+    background-image: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
+  }
+}
+
+@media (hover: none) {
+  .dialog-button:active {
+    background-image: linear-gradient(90deg, #0056D6 0%, #00A1D8 50%, #01C7FC 100%);
+  }
 }
 
 @media(max-width: 1200px) {

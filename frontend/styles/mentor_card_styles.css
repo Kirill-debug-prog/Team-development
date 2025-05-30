@@ -50,6 +50,9 @@ main {
 .mentor-name {
   font-weight: 700;
   font-size: 32px;
+  min-width: 0;
+  max-width: 650px;
+  overflow-wrap: break-word;
 }
 
 .consultation-info {
@@ -63,6 +66,7 @@ main {
 .price-accent {
   font-weight: 700;
   text-shadow: 0 4px 4px rgba(0, 0, 0, 0.3), 0 8px 12px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
 }
 
 .message-button {
@@ -73,6 +77,10 @@ main {
   border: 1px solid rgba(151, 176, 162, 0.9);
   transition-duration: 0.2s;
   white-space: nowrap;
+}
+
+.display-none {
+  display: none;
 }
 
 @media (hover: hover) {
@@ -105,6 +113,8 @@ main {
 
 .card-main-info {
   padding: 20px 30px;
+  min-width: 0;
+  height: fit-content;
 }
 
 .card-main-info > :not(:last-child) {
@@ -114,6 +124,11 @@ main {
 .card-title {
   font-size: 32px;
   text-align: center;
+  overflow-wrap: break-word;
+}
+
+.card-description {
+  overflow-wrap: break-word;
 }
 
 .card-activity-areas {
@@ -126,10 +141,12 @@ main {
 .activity-areas-list {
   display: flex;
   column-gap: 10px;
+  flex-wrap: wrap;
+  row-gap: 10px;
 }
 
 .activity-area {
-  font-size: 14px;
+  font-size: 16px;
   border: 1px solid var(--color-dark-grey);
   padding: 13px;
   border-radius: 5px;
@@ -139,6 +156,7 @@ main {
 .card-experience {
   padding: 20px 20px 30px;
   height: fit-content;
+  min-width: 0;
 }
 
 .card-experience > :not(:last-child) {
@@ -157,6 +175,7 @@ main {
 
 .experience-position-place {
   font-weight: 500;
+  overflow-wrap: break-word;
 }
 
 .experience-time {
@@ -225,6 +244,21 @@ dialog::backdrop {
     width: 200px;
     aspect-ratio: 1;
   }
+
+  .mentor-name {
+    max-width: 500px;
+    font-size: 30px;
+  }
+
+  .card-title,
+  .experience-title {
+    font-size: 26px;
+  }
+
+  .card-description,
+  .card-activity-areas {
+    font-size: 18px;
+  }
 }
 
 @media(max-width: 1000px) {
@@ -250,21 +284,40 @@ dialog::backdrop {
   }
 
   .mentor-name {
-    font-size: 24px;
+    max-width: 300px;
+    font-size: 20px;
   }
 
   .card-body {
     padding-block: 40px;
+  }
+
+  .consultation-price,
+  .message-button {
+    font-size: 18px;
+  }
+
+  .card-title,
+  .experience-title {
+    font-size: 20px;
+  }
+
+  .card-description,
+  .card-activity-areas,
+  .experience-position-place,
+  .experience-total {
+    font-size: 16px;
+  }
+
+  .experience-time,
+  .activity-area {
+    font-size: 14px;
   }
 }
 
 @media(max-width: 670px) {
   main {
     font-size: 14px;
-  }
-  
-  .card-header {
-    font-size: 16px;
   }
   
   .card-header-wrapper {
@@ -279,7 +332,8 @@ dialog::backdrop {
   }
 
   .mentor-name {
-    font-size: 20px;
+    font-size: 16px;
+    max-width: 500px;
   }
 
   .consultation-info {
@@ -304,18 +358,14 @@ dialog::backdrop {
     margin-bottom: 20px;
   }
 
-  .card-title,
-  .experience-title {
-    font-size: 25px;
+  .consultation-price,
+  .message-button {
+    font-size: 16px;
   }
 
   .activity-area {
-    padding: 5;
+    padding: 7px;
     line-height: 1;
-  }
-
-  .experience-time {
-    font-size: 14px;
   }
 
   .showing-unauth-window {

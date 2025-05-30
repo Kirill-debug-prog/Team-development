@@ -1,6 +1,11 @@
 //проверка на авторизацию
 if (getCookie('token')) {
     setUserName();
+} else {
+    // если токен истек (данные в localStorage остаются)
+    if (localStorage.getItem('id')) {
+        redirectToLogin();
+    }
 }
 
 function setUserName() {
@@ -34,6 +39,17 @@ function getCookie(name) {
         return entryValue;
     }
   }
+}
+
+function redirectToLogin() {
+    localStorage.setItem('expiredMessage', 'Ваша сессия устарела.');
+
+    localStorage.removeItem('firstName');
+	localStorage.removeItem('lastName');
+	localStorage.removeItem('patronymic');
+    localStorage.removeItem('id');
+
+    window.location.href = './login.html';
 }
 
 
@@ -89,12 +105,16 @@ function createMentorCard (card) {
 
         <div class="card-experience">
             Опыт работы: <span class="work-experience">
-        ${formatTotalExperience(card.experiences)}
-    </span>
+            ${formatTotalExperience(card.experiences)}
+            </span>
         </div>
 
+        ${card.categories.length ?
+            `<div class="card-categories">Сферы: <span class="lowercase">${card.categories.map( category => category.name ).join(', ')}</span></div>`
+            : ''}
+
         <div class="card-short-description">
-        ${getFirstSentences(card.description, 4)}
+            ${card.description}
         </div>
     
         <div class="card-footer">
@@ -108,12 +128,6 @@ function createMentorCard (card) {
     return cartArticle
 }
 
-function getFirstSentences(text, count) {
-    if (!text) return '';
-
-    const sentences = text.split(/(?<=[.!?])\s+/); 
-    return sentences.slice(0, count).join(' ');
-}
 
 
 function formatTotalExperience(experiences) {
@@ -343,6 +357,23 @@ document.addEventListener("click", function(event) {
     }
 });
 
+
+const pickedFieldOptionsDisplay = document.querySelector(".picked-field-options");
+document.querySelector(".dropdown-options").addEventListener('change', () => {
+    const checkedInputs = document.querySelector(".dropdown-options").querySelectorAll("input:checked");
+    const pickedOptions = Array.from(checkedInputs).map(function (checkedInput) {
+        return checkedInput.closest('label').textContent;
+    })
+
+    pickedFieldOptionsDisplay.innerHTML = `${pickedOptions.join(', ')}`;
+})
+
+
+function toggleOptionsDisplay() {
+    document.querySelector(".picked-field-options").classList.toggle("hide-options");
+}
+
+
 async function applySortingAndReload() {
     const sortBy = "price"
     const sortDirection = document.getElementById('variant').value
@@ -537,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (searchForm && searchInput) {
         searchForm.addEventListener('submit', function (e) {
             e.preventDefault()
-            alert('Submit intercepted')
+            // alert('Submit intercepted')
 
             const query = searchInput.value.trim(); 
 
@@ -550,6 +581,20 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
         console.error('Элементы для поиска не найдены на странице');
     }
+
+    const mobileSearchForm = document.getElementById('mobile-search-form')
+    const mobileSearchInput = document.getElementById('mobile-search')
+    mobileSearchForm.addEventListener('submit', function (e) {
+        e.preventDefault()
+
+        const query = mobileSearchInput.value.trim(); 
+
+        if (query) {
+            searchMentors(query)
+        } else {
+            console.log('Поиск не выполнен, строка поиска пуста');
+        }
+    });
 });
 
 async function searchMentors(query) {

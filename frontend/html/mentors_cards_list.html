@@ -101,9 +101,9 @@
                 type="button">
                 <span class="visually-hidden">Открыть фильтр</span>
             </button>
-            <form  class="search-form" action="" method="">
+            <form id="mobile-search-form" class="search-form" action="" method="">
                 <label class="visually-hidden" for="search">Поиск</label>
-                <input class="search-form-input input" type="search" placeholder="Поиск ментора" />
+                <input id="mobile-search" class="search-form-input input" type="search" placeholder="Поиск анкеты" />
                 <button class="search-form-button" type="submit">
                     <span class="visually-hidden">Найти</span>
                 </button>
@@ -116,7 +116,7 @@
 
                 <form id='search-form' class="search-form"  action="" method="">
                     <label class="visually-hidden" for="search">Поиск</label>
-                    <input class="search-form-input input" type="search" id="search" onfocus="this.select()" placeholder="Поиск ментора" />
+                    <input class="search-form-input input" type="search" id="search" onfocus="this.select()" placeholder="Поиск анкеты" />
                     <button class="search-form-button"
                         type="submit">
                         <span class="visually-hidden">Найти</span>
@@ -168,11 +168,13 @@
                     </div>
 
                     <div class="dropdown-container">
-                        <div class="dropdown" onclick="toggleDropdown()">Сфера деятельности</div>
+                        <div class="dropdown" onclick="toggleDropdown()">Сферы деятельности</div>
                         <div class="dropdown-options" id="options">
                             <!-- Сферы деятельности будут добавляться сюда динамически -->
                         </div>
+                        <div class="picked-field-options hide-options" onclick="toggleOptionsDisplay()"></div>
                     </div>
+
 
                     <div class="dropdown-container">
                         <label class="visually-hidden" for="variant">Вариант сортировки</label>

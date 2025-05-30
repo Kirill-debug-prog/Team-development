@@ -1,6 +1,11 @@
 //проверка на авторизацию
 if (getCookie('token')) {
     setUserName();
+} else {
+    // если токен истек (данные в localStorage остаются)
+    if (localStorage.getItem('id')) {
+        redirectToLogin();
+    }
 }
 
 function setUserName() {
@@ -66,6 +71,11 @@ function renderMentorCard(mentor) {
     document.querySelector('.price-accent').textContent = mentor.pricePerHours + ' ₽'
     document.querySelector('.card-title').textContent = mentor.title || ''
     document.querySelector('.card-description').textContent = mentor.description || ''
+
+    // если авторизованный сейчас пользователь !== создатель анкеты, то показывает кнопку "написать"
+    if (localStorage.getItem('id')!==mentor.mentorId) {
+        document.querySelector('.message-button').classList.remove('display-none')
+    }
 
     const experienceList = document.querySelector('.experience-list')
     experienceList.innerHTML = ''

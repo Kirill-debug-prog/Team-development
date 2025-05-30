@@ -82,10 +82,10 @@
     <main class="container">
         <div class="survey">
             <h1 class="survey-title">Редактирование анкеты консультанта</h1>
-            <form class="form" action="" method="post">
+            <form class="modify-card-form form">
                 <div class="input-wrapper">
                     <label class="label" for="specialization">Специализация / название</label>
-                    <input class="input" id="specialization" type="text" maxlength="200" 
+                    <input class="input" id="specialization" type="text" minlength="5" maxlength="200" 
                     spellcheck="true" required/>       
                 </div>
                 
@@ -93,35 +93,18 @@
                     <span class="label">Опыт работы</span>
                     
                     <div id="experience-list">
-                        <div class="experience-item">
-                            <div class="experience-title-button-wrapper">
-                                <span class="experience-item-title">Опыт работы №1</span>
-                                <button type="button" class="remove-experience-button" onclick="removeExperience(this)">×</button>
-                            </div>
-                            
-                            <label for="position-1" class="visually-hidden">Должность</label>
-                            <input id="position-1" class="input" type="text" placeholder="Должность">
-                            
-                            <label for="company-1" class="visually-hidden">Компания</label>
-                            <input id="company-1" class="input" type="text" placeholder="Компания">
-                            
-                            <label for="duration-1" class="visually-hidden">Срок работы</label>
-                            <input id="duration-1" class="input" type="text" placeholder="Срок работы (например, 2 года)">                                           
-                        </div>
+                        
                     </div>
 
                     <button type="button" class="add-experience-button" onclick="addExperience()">Добавить</button>   
                 </div>
                 
                 <div class="dropdown-container">
-                    <div class="dropdown" onclick="toggleDropdown()">Компетенции</div>
+                    <div class="dropdown" onclick="toggleDropdown()">Сферы деятельности</div>
                     <div class="dropdown-options" id="options">
-                        <label><input type="checkbox" value="it"> Информационные технологии</label>
-                        <label><input type="checkbox" value="finance"> Финансы</label>
-                        <label><input type="checkbox" value="marketing"> Маркетинг</label>
-                        <label><input type="checkbox" value="healthcare"> Здравоохранение</label>
-                        <label><input type="checkbox" value="education"> Образование</label>
+                        <!-- Сферы деятельности будут добавляться сюда динамически -->
                     </div>
+                    <div class="picked-field-options" onclick="toggleOptionsDisplay()"></div>
                 </div>
 
                 <div class="input-wrapper">
@@ -131,7 +114,7 @@
 
                 <div class="input-wrapper">
                     <label class="label" for="description">Описание сферы деятельности</label>
-                    <textarea class="description-input" id="description" spellcheck="true" required></textarea>    
+                    <textarea class="description-input" id="description" spellcheck="true" minlength="0" maxlength="3000" ></textarea>  
                 </div>
                 
                 <div class="actions-wrapper">
@@ -193,6 +176,20 @@
             </div>
         </div>
     </footer>
+
+    <dialog class="showing-error-window" id="showingError">
+        <div class="dialog-text"></div>
+        <div class="dialog-actions-wrapper">
+            <button class="dialog-button" onclick="showingError.close()">Ок</button>
+        </div>
+    </dialog>
+
+    <dialog class="showing-success-window" id="showingSuccess">
+        <div class="dialog-text">Анкета успешно изменена!</div>
+        <div class="dialog-actions-wrapper">
+            <a class="dialog-button" href="./user_profile.html">Ок</a>
+        </div>
+    </dialog>
 
     <script src="../js/create_modify_card_script.js"></script>
 </body>
