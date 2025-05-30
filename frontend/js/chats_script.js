@@ -91,10 +91,14 @@ function addChats(chats) {
     } else {
         chatListElement.innerHTML = ``;
 
+
         chats.forEach(({id, clientName, mentorName, mentorId, title, lastMessage, unreadMessagesCount} = chatInfo) => {
             let chat = document.createElement("li");
             chat.classList.add("chat-item");
             chat.setAttribute('data-chat-id',`${id}`);
+
+            let localTitle = localStorage.getItem(`chatTitle-${id}`)
+            let finalTitle = localTitle || title
 
             //определение, кто является собеседником
             const isUserMentor = mentorId === localStorage.getItem('id') ? true : false;
@@ -111,7 +115,7 @@ function addChats(chats) {
                 />
                 <div class="chat-info-wrapper">
                     <div class="interlocutor-name">${interlocutorName}</div>
-                    <div class="chat-title">${title}</div>
+                    <div class="chat-title">${finalTitle}</div>
                 </div>
                 <div class="unread-messages-counter">${realUnreadMessagesCount}</div>                                          
             `;
@@ -165,17 +169,17 @@ chatListElement.addEventListener('click', (event) => {
     });
 
     const sendButtonElement = document.querySelector(".send-message-button");
-    const messageListElement = document.querySelector(".message-list");
 
     sendButtonElement.addEventListener("click", async () => {
         const messageText = textareaElement.value.trim();
         if (!messageText) return;
 
-        const userId = localStorage.getItem('id');
         const roomId = chat.getAttribute('data-chat-id');
 
         try {
-            await connection.invoke("SendMessage", roomId, userId, messageText);
+
+            await sendMessageHttp(roomId, messageText);
+
             textareaElement.value = '';
             textareaElement.style.height = 0;
         } catch (error) {
@@ -201,6 +205,8 @@ chatListElement.addEventListener('click', (event) => {
 
     const roomId = chat.getAttribute('data-chat-id');
     startSignalR(roomId);
+
+    loadMessages(roomId)
 });
 
 // --------------------- SIGNALR ---------------------
@@ -232,15 +238,24 @@ async function startSignalR(roomId) {
     }
 }
 
-function appendMessageToChat(senderId, messageText) {
-    const messageList = document.querySelector('.message-list');
-    const messageDate = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+// --------------------- ОТРИСОВКА СООБЩЕНИЙ ---------------------
+function appendMessageToChat(senderId, messageText, dateSent) {
 
-    let newMessage = document.createElement("div");
+    const messageList = document.querySelector('.message-list')
+    messageList.innerHTML = ''
+
+    const messageDate = dateSent
+        ? new Date(dateSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let newMessage = document.createElement("div")
     newMessage.classList.add("message");
     if (senderId === localStorage.getItem('id')) {
-        newMessage.classList.add("sender-me");
+        newMessage.classList.add("sender-me")
     }
+
+    let notification = document.createElement('div')
+    notification.classList.add('notification-message')
 
     newMessage.innerHTML = `
         <div class="message-text">${escapeHtml(messageText)}</div>
@@ -248,11 +263,147 @@ function appendMessageToChat(senderId, messageText) {
     `;
 
     messageList.appendChild(newMessage);
+    messageList.scrollTop = messageList.scrollHeight;
 }
 
 // --------------------- ЭКРАНИРОВАНИЕ ---------------------
 function escapeHtml(text) {
-    const div = document.createElement("div");
-    div.innerText = text;
-    return div.innerHTML;
+    const div = document.createElement("div")
+    div.innerText = text
+    return div.innerHTML
+}
+
+// --------------------- ОТКРЫТИЕ ЧАТА ---------------------
+async function loadMessages(roomId) {
+    try {
+
+        const token = getCookie('token');
+        if (!token) {
+            redirectToLogin();
+            return;
+    }
+
+    const respons = await fetch(`http://89.169.3.43/api/chat/rooms/${roomId}/messages`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    })
+
+    if (respons.status === 401) {
+        redirectToLogin()
+        return;
+    }
+
+    if (!respons.ok) {
+        throw new Error(`Ошибка: ${respons.status}`)
+    }
+
+    const message = await respons.json()
+    renderMessages(message)
+    console.log(message);
+    } catch (error) {
+        console.error("Ошибка при загрузке сообщений:", error)
+    }
+}
+
+function renderMessages(messages) {
+    const messageList = document.querySelector('.message-list');
+    messageList.innerHTML = ''
+
+    if (!messages || messages.length == 0) {
+        const emptyMessage = document.createElement('p')
+        emptyMessage.classList.add('no-messages')
+        emptyMessage.textContent = 'Нет сообщений в этом чате'
+        messageList.appendChild(emptyMessage)
+        return
+    }
+
+    let lastDateGroup = null;
+
+    messages.reverse().forEach(({ senderId, messageContent, dateSent }) => {
+        const currentDateGroup = formatDateGroup(dateSent)
+
+        // Если дата группы изменилась — вставляем заголовок
+        if (currentDateGroup !== lastDateGroup) {
+            const dateGroupDiv = document.createElement('div')
+            dateGroupDiv.classList.add('messages-date')
+            dateGroupDiv.textContent = currentDateGroup
+            messageList.appendChild(dateGroupDiv)
+
+            lastDateGroup = currentDateGroup;
+        }
+
+        const messageDate = new Date(dateSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        let messageDiv = document.createElement('div')
+        messageDiv.classList.add('message')
+        if (senderId === localStorage.getItem('id')) {
+            messageDiv.classList.add('sender-me')
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="message-text">${escapeHtml(messageContent)}</div>
+            <span class="message-time">${messageDate}</span>
+        `;
+
+        messageList.appendChild(messageDiv)
+    })
+
+    messageList.scrollTop = messageList.scrollHeight
+}
+
+
+
+// --------------------- оТПРАВКА СООБЩЕНИЙ ---------------------
+async function sendMessageHttp(roomId, messageText) {
+    const token = getCookie('token');
+
+    if (!messageText.trim()) return;
+
+    const body = {
+        messageContent: messageText.trim()
+    };
+
+    try {
+        console.log("Отправляем сообщение на сервер", roomId, messageText);
+        const response = await fetch(`http://89.169.3.43/api/chat/rooms/${roomId}/messages`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (response.status === 201) {
+            const messageDto = await response.json();
+            console.log("Сообщение успешно отправлено", messageDto);
+            appendMessageToChat(messageDto.senderId, messageDto.messageContent, messageDto.dateSent);
+            return messageDto;
+        } else if (response.status === 401) {
+            redirectToLogin();
+        } else {
+            const errorData = await response.json();
+            console.error("Ошибка при отправке сообщения:", errorData)
+        }
+    } catch (error) {
+        console.error("Ошибка сети при отправке сообщения:", error)
+    }
+}
+
+function formatDateGroup(dateString) {
+    const date = new Date(dateString)
+    const now = new Date()
+
+    const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+    const diffTime = nowDay - dateDay
+    const diffDays = diffTime / (1000 * 60 * 60 * 24)
+
+    if (diffDays === 0) return 'Сегодня';
+    if (diffDays === 1) return 'Вчера';
+
+    return date.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'});
 }

@@ -403,3 +403,10 @@ main {
     width: 100%;
   }
 }
+
+.no-messages {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-style: italic;
+}
