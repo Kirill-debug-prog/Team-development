@@ -12,5 +12,6 @@ namespace ConsultantPlatform.Models.DTO
         [Required]
         [StringLength(2000, ErrorMessage = "Сообщение не может быть длиннее 2000 символов.")]
         public string MessageContent { get; set; } = null!;
+
     }
 }
