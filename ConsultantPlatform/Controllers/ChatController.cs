@@ -70,16 +70,6 @@ namespace ConsultantPlatform.Controllers
                 // Предполагаем, что initialTitle может быть null, сервис сам сгенерирует подходящий
                 var chatRoomDto = await _chatService.GetOrCreateChatRoomAsync(clientId, mentorId);
 
-                // Определяем, был ли чат создан (201) или найден существующий (200)
-                // Это можно сделать, если GetOrCreateChatRoomAsync возвращает какой-то признак
-                // или по времени создания, но это сложнее. Проще всегда возвращать 200 OK
-                // или если сервис возвращает флаг isNew. Для простоты, всегда 200.
-                // Если очень хочется 201:
-                // bool wasCreated = ... ; // Логика определения, был ли чат только что создан
-                // if (wasCreated)
-                // {
-                //     return CreatedAtAction(nameof(GetChatRoomById), new { roomId = chatRoomDto.Id }, chatRoomDto);
-                // }
                 return Ok(chatRoomDto);
             }
             catch (KeyNotFoundException ex)
@@ -155,13 +145,6 @@ namespace ConsultantPlatform.Controllers
                 var roomDto = await _chatService.GetChatRoomDetailsAsync(roomId, userId);
                 if (roomDto == null)
                 {
-                    // Сервис мог вернуть null если комната не найдена ИЛИ если пользователь не участник.
-                    // Чтобы дать более точный ответ (403 vs 404), сервис должен был бы выбрасывать UnauthorizedAccessException.
-                    // Если сервис GetChatRoomDetailsAsync возвращает null при отсутствии доступа, то это будет 404.
-                    // Если бы он бросал UnauthorizedAccessException, мы бы его поймали и вернули 403.
-                    // Для текущей реализации ChatService (где он просто вернет null если нет доступа), это будет 404.
-                    // Если вы хотите различать "не найдено" и "нет доступа", то ChatService.GetChatRoomDetailsAsync должен
-                    // выбрасывать UnauthorizedAccessException, который мы бы поймали здесь.
                     _logger.LogWarning("Чат-комната {RoomId} не найдена или пользователь {UserId} не имеет к ней доступа.", roomId, userId);
                     return NotFound(new { Message = $"Чат-комната с ID {roomId} не найдена или у вас нет к ней доступа." });
                 }
@@ -183,6 +166,7 @@ namespace ConsultantPlatform.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Произошла внутренняя ошибка сервера." });
             }
         }
+
 
 
         /// <summary>
@@ -212,13 +196,7 @@ namespace ConsultantPlatform.Controllers
                 return Unauthorized(new { Message = "Не удалось идентифицировать пользователя из токена." });
             }
 
-            // Проверка, что roomId из DTO (если он там есть) совпадает с roomId из пути
-            // В SendMessageDTO у нас нет ChatRoomId, так как он уже в пути. Это правильно.
-            // if (sendMessageDto.ChatRoomId != Guid.Empty && sendMessageDto.ChatRoomId != roomId)
-            // {
-            //    _logger.LogWarning("Несоответствие ID чат-комнаты в пути ({PathRoomId}) и теле запроса ({BodyRoomId}).", roomId, sendMessageDto.ChatRoomId);
-            //    return BadRequest(new { Message = "ID чат-комнаты в пути и теле запроса не совпадают." });
-            // }
+
 
 
             _logger.LogInformation("Пользователь {SenderId} отправляет сообщение в чат-комнату {RoomId}", senderId, roomId);
@@ -261,8 +239,8 @@ namespace ConsultantPlatform.Controllers
         [HttpGet("rooms/{roomId}/messages")]
         [ProducesResponseType(typeof(IEnumerable<MessageDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)] // Если пользователь не участник
-        [ProducesResponseType(StatusCodes.Status404NotFound)] // Если комната не найдена
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<IEnumerable<MessageDTO>>> GetMessages(
             Guid roomId,
@@ -277,33 +255,36 @@ namespace ConsultantPlatform.Controllers
 
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 1;
-            if (pageSize > 100) pageSize = 100; // Ограничение на максимальный размер страницы
+            if (pageSize > 100) pageSize = 100;
 
-            _logger.LogInformation("Пользователь {UserId} запрашивает сообщения для чата {RoomId}, страница {PageNumber}, размер {PageSize}",
+            _logger.LogInformation("Пользователь {UserId} запрашивает сообщения для чата {RoomId} (стр. {PageNumber}, разм. {PageSize}). Сообщения также будут помечены как прочитанные.",
                 userId, roomId, pageNumber, pageSize);
 
             try
             {
                 var messagesDto = await _chatService.GetMessagesAsync(roomId, userId, pageNumber, pageSize);
-                _logger.LogInformation("Найдено {Count} сообщений для чата {RoomId} для пользователя {UserId}", messagesDto.Count(), roomId, userId);
+                _logger.LogInformation("Возвращено {Count} сообщений для чата {RoomId} (пользователь {UserId}). Непрочитанные сообщения были отмечены.", messagesDto.Count(), roomId, userId);
+
+
                 return Ok(messagesDto);
             }
-            catch (KeyNotFoundException ex) // Комната не найдена
+            catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning(ex, "Ошибка при получении сообщений чата {RoomId} пользователем {UserId}: {ErrorMessage}", roomId, userId, ex.Message);
+                _logger.LogWarning(ex, "Ошибка при получении/отметке сообщений чата {RoomId} пользователем {UserId}: {ErrorMessage}", roomId, userId, ex.Message);
                 return NotFound(new { Message = ex.Message });
             }
-            catch (UnauthorizedAccessException ex) // Пользователь не участник чата
+            catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning(ex, "Пользователь {UserId} не авторизован для просмотра сообщений чата {RoomId}: {ErrorMessage}", userId, roomId, ex.Message);
+                _logger.LogWarning(ex, "Пользователь {UserId} не авторизован для просмотра/отметки сообщений чата {RoomId}: {ErrorMessage}", userId, roomId, ex.Message);
                 return Forbid();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Непредвиденная ошибка при получении сообщений чата {RoomId} пользователем {UserId}", roomId, userId);
+                _logger.LogError(ex, "Непредвиденная ошибка при получении/отметке сообщений чата {RoomId} пользователем {UserId}", roomId, userId);
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Произошла внутренняя ошибка сервера." });
             }
         }
+
 
 
         /// <summary>

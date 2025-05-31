@@ -21,7 +21,6 @@ namespace ConsultantPlatform.Service
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            // _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         /// <summary>
@@ -35,59 +34,72 @@ namespace ConsultantPlatform.Service
         {
             _logger.LogInformation("Попытка получить или создать чат-комнату между клиентом {ClientId} и ментором {MentorId}", clientId, mentorId);
 
-            // Проверка существования пользователей (опционально, но рекомендуется)
-            var clientExists = await _context.Users.AnyAsync(u => u.Id == clientId);
-            var mentorExists = await _context.Users.AnyAsync(u => u.Id == mentorId);
+            var clientUser = await _context.Users.FindAsync(clientId);
+            var mentorUser = await _context.Users.FindAsync(mentorId);
 
-            if (!clientExists || !mentorExists)
+            if (clientUser == null || mentorUser == null)
             {
                 _logger.LogWarning("Один из участников чата не найден: Клиент {ClientId} (существует: {ClientExists}), Ментор {MentorId} (существует: {MentorExists})",
-                    clientId, clientExists, mentorId, mentorExists);
+                    clientId, clientUser != null, mentorId, mentorUser != null);
                 throw new KeyNotFoundException("Один из пользователей (клиент или ментор) не найден.");
             }
 
-            var existingRoom = await _context.ChatRooms
-                .Include(cr => cr.Client)
-                .Include(cr => cr.Mentor)
+            // Пытаемся найти существующую комнату
+            // Важно: ClientId и MentorId в ChatRoom имеют строгую семантику.
+            // Если мы ищем комнату между UserA и UserB, то (Client=A, Mentor=B) - это одна комната,
+            // а (Client=B, Mentor=A) - потенциально другая, если такая логика допустима.
+            // В вашем случае, похоже, ClientId - это всегда "клиент", а MentorId - "ментор".
+            // Поэтому поиск должен быть строгим:
+            var existingRoomEntity = await _context.ChatRooms
+                .Include(cr => cr.Client) // Включаем, чтобы не делать лишний запрос позже
+                .Include(cr => cr.Mentor) // Включаем, чтобы не делать лишний запрос позже
                 .Include(cr => cr.Messages.OrderByDescending(m => m.DateSent).Take(1)) // Для LastMessage
-                .FirstOrDefaultAsync(cr =>
-                    (cr.ClientId == clientId && cr.MentorId == mentorId) ||
-                    (cr.ClientId == mentorId && cr.MentorId == clientId)); // На случай, если роли могут меняться, но обычно фиксировано
+                    .ThenInclude(m => m.Sender) // Для SenderName в LastMessage
+                .FirstOrDefaultAsync(cr => cr.ClientId == clientId && cr.MentorId == mentorId);
+            // Убрал || (cr.ClientId == mentorId && cr.MentorId == clientId) так как это может быть неверно для вашей логики
+            // Если же клиент и ментор могут меняться ролями в контексте одной комнаты, то нужно вернуть ту проверку
+            // или пересмотреть структуру ChatRoom. Для простоты, предполагаем строгие роли.
 
-            if (existingRoom != null)
+            if (existingRoomEntity != null)
             {
-                _logger.LogInformation("Найдена существующая чат-комната ID: {ChatRoomId}", existingRoom.Id);
-                return MapChatRoomToDTO(existingRoom); // Нужен метод маппинга
+                _logger.LogInformation("Найдена существующая чат-комната ID: {ChatRoomId}", existingRoomEntity.Id);
+                // Считаем непрочитанные сообщения для clientId в этой комнате
+                int unreadCount = await _context.Messages
+                    .CountAsync(m => m.ChatRoomId == existingRoomEntity.Id &&
+                                     m.SenderId != clientId && // Сообщения, отправленные НЕ текущим клиентом
+                                     !m.IsRead);               // И которые не прочитаны
+
+                return MapChatRoomToDTO(existingRoomEntity, clientId, unreadCount); // Передаем clientId для корректного формирования Title и unreadCount
             }
 
             _logger.LogInformation("Создание новой чат-комнаты между клиентом {ClientId} и ментором {MentorId}", clientId, mentorId);
-            var newRoom = new ChatRoom
+
+            var newRoomEntity = new ChatRoom
             {
                 ClientId = clientId,
                 MentorId = mentorId,
-                Title = initialTitle // Можно формировать автоматически, например, "Чат с {MentorName}"
+                Title = initialTitle
             };
 
-            // Если Title не задан, можно попробовать сформировать его из имен пользователей
-            if (string.IsNullOrEmpty(newRoom.Title))
+            if (string.IsNullOrEmpty(newRoomEntity.Title))
             {
-                var client = await _context.Users.FindAsync(clientId);
-                var mentor = await _context.Users.FindAsync(mentorId);
-                newRoom.Title = $"Чат между {client?.FirstName ?? "Клиент"} и {mentor?.FirstName ?? "Ментор"}";
+                newRoomEntity.Title = $"Чат между {clientUser.FirstName ?? clientUser.Login} и {mentorUser.FirstName ?? mentorUser.Login}";
             }
 
-
-            _context.ChatRooms.Add(newRoom);
+            _context.ChatRooms.Add(newRoomEntity);
             await _context.SaveChangesAsync();
 
-            // Перезагружаем комнату с включенными навигационными свойствами для DTO
+
             var createdRoomWithDetails = await _context.ChatRooms
                 .Include(cr => cr.Client)
                 .Include(cr => cr.Mentor)
-                .FirstAsync(cr => cr.Id == newRoom.Id); // FirstAsync так как мы только что создали
+                // Messages здесь не включаем, так как их еще нет, unreadCount будет 0
+                .FirstAsync(cr => cr.Id == newRoomEntity.Id);
+
 
             _logger.LogInformation("Новая чат-комната ID: {ChatRoomId} успешно создана", createdRoomWithDetails.Id);
-            return MapChatRoomToDTO(createdRoomWithDetails);
+            // Для новой комнаты непрочитанных сообщений для clientId будет 0.
+            return MapChatRoomToDTO(createdRoomWithDetails, clientId, 0);
         }
 
         /// <summary>
@@ -156,17 +168,34 @@ namespace ConsultantPlatform.Service
                 throw new KeyNotFoundException($"Пользователь с ID {userId} не найден.");
             }
 
-            var chatRooms = await _context.ChatRooms
+            var chatRoomsEntities = await _context.ChatRooms
                 .Include(cr => cr.Client)
                 .Include(cr => cr.Mentor)
-                .Include(cr => cr.Messages.OrderByDescending(m => m.DateSent).Take(1)) // Для LastMessage
-                    .ThenInclude(m => m.Sender) // Для SenderName в LastMessage
+                .Include(cr => cr.Messages.OrderByDescending(m => m.DateSent).Take(1))
+                    .ThenInclude(m => m.Sender)
                 .Where(cr => cr.ClientId == userId || cr.MentorId == userId)
-                .OrderByDescending(cr => cr.Messages.Any() ? cr.Messages.Max(m => m.DateSent) : DateTime.MinValue) // Сортировка по дате последнего сообщения
                 .ToListAsync();
 
-            _logger.LogInformation("Найдено {Count} чат-комнат для пользователя {UserId}", chatRooms.Count, userId);
-            return chatRooms.Select(cr => MapChatRoomToDTO(cr, userId)).ToList();
+            var chatRoomDTOs = new List<ChatRoomDTO>();
+
+            foreach (var room in chatRoomsEntities)
+            {
+                // Вычисляем количество непрочитанных сообщений для текущего пользователя в этой комнате
+                int unreadCount = await _context.Messages
+                    .CountAsync(m => m.ChatRoomId == room.Id &&  // Сообщения из этой комнаты
+                                     m.SenderId != userId &&      // Отправленные не текущим пользователем
+                                     !m.IsRead);                  // И не помеченные как прочитанные
+
+                chatRoomDTOs.Add(MapChatRoomToDTO(room, userId, unreadCount));
+            }
+
+            // Сортируем DTO по дате последнего сообщения, если нужно
+            var sortedChatRoomDTOs = chatRoomDTOs
+                .OrderByDescending(dto => dto.LastMessage?.DateSent ?? DateTime.MinValue)
+                .ToList();
+
+            _logger.LogInformation("Найдено {Count} чат-комнат для пользователя {UserId}", sortedChatRoomDTOs.Count, userId);
+            return sortedChatRoomDTOs;
         }
 
         /// <summary>
@@ -189,30 +218,40 @@ namespace ConsultantPlatform.Service
                 throw new KeyNotFoundException($"Чат-комната с ID {chatRoomId} не найдена.");
             }
 
-            // Проверка, что пользователь является участником чата
             if (chatRoom.ClientId != userId && chatRoom.MentorId != userId)
             {
                 _logger.LogWarning("Пользователь {UserId} не является участником чат-комнаты {ChatRoomId}. Доступ к сообщениям запрещен.", userId, chatRoomId);
                 throw new UnauthorizedAccessException("Вы не можете просматривать сообщения этой чат-комнаты.");
             }
 
-            var messagesQuery = _context.Messages
-                .Include(m => m.Sender) // Включаем отправителя для имени
-                .Where(m => m.ChatRoomId == chatRoomId)
-                .OrderByDescending(m => m.DateSent); // Сначала новые или сначала старые? Обычно сначала старые, потом новые.
-                                                     // Для чата часто удобнее .OrderBy(m => m.DateSent)
-                                                     // Если нужна "бесконечная прокрутка вверх", то OrderByDescending
+            // --- Логика отметки сообщений как прочитанных ---
+            var messagesToMarkAsRead = await _context.Messages
+                .Where(m => m.ChatRoomId == chatRoomId && m.SenderId != userId && !m.IsRead)
+                .ToListAsync();
 
-            // Для примера: сначала самые новые (для "загрузить еще")
+            if (messagesToMarkAsRead.Any())
+            {
+                foreach (var message in messagesToMarkAsRead)
+                {
+                    message.IsRead = true;
+                }
+                await _context.SaveChangesAsync(); // Сохраняем изменения статуса IsRead
+                _logger.LogInformation("{Count} сообщений в комнате {ChatRoomId} отмечено как прочитанные для пользователя {UserId} при получении истории.",
+                    messagesToMarkAsRead.Count, chatRoomId, userId);
+
+            }
+
+            var messagesQuery = _context.Messages
+                .Include(m => m.Sender)
+                .Where(m => m.ChatRoomId == chatRoomId)
+                .OrderBy(m => m.DateSent); // Или OrderByDescending в зависимости от вашей логики пагинации
+
             var messages = await messagesQuery
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Если нужна хронологическая последовательность на клиенте, но грузим порциями с конца:
-            // messages.Reverse(); // Раскомментировать, если на клиенте сообщения должны отображаться снизу вверх (старые вверху)
-
-            _logger.LogInformation("Найдено {Count} сообщений для чат-комнаты {ChatRoomId} на странице {PageNumber}", messages.Count, chatRoomId, pageNumber);
+            _logger.LogInformation("Найдено {Count} сообщений для чат-комнаты {ChatRoomId} на странице {PageNumber} для пользователя {UserId}", messages.Count, chatRoomId, pageNumber, userId);
             return messages.Select(m => MapMessageToDTO(m, m.Sender.FirstName ?? m.Sender.Login)).ToList();
         }
 
@@ -251,34 +290,30 @@ namespace ConsultantPlatform.Service
         }
 
 
-        // ----- Вспомогательные методы маппинга -----
-        // Их можно вынести в отдельный класс-маппер или использовать AutoMapper
-
-        private ChatRoomDTO MapChatRoomToDTO(ChatRoom room, Guid? currentUserId = null)
+        private ChatRoomDTO MapChatRoomToDTO(ChatRoom room, Guid? currentUserId = null, int? unreadMessagesCount = null) // Добавили unreadMessagesCount
         {
             if (room == null) throw new ArgumentNullException(nameof(room));
 
-            var lastMessage = room.Messages.FirstOrDefault(); // Уже загружено и отсортировано
+            var lastMessageEntity = room.Messages.FirstOrDefault(); // Уже загружено и отсортировано, если есть
             string? title = room.Title;
 
-            // Формирование "умного" заголовка, если currentUserId передан
-            // (показываем имя собеседника)
-            if (currentUserId.HasValue && string.IsNullOrEmpty(title)) // или если title стандартный
+            if (currentUserId.HasValue)
             {
                 if (room.ClientId == currentUserId.Value && room.Mentor != null)
                 {
-                    title = $"Чат с {room.Mentor.FirstName ?? room.Mentor.Login}";
+                    title = string.IsNullOrEmpty(title) ? $"Чат с {room.Mentor.FirstName ?? room.Mentor.Login} {room.Mentor.LastName ?? ""}".Trim() : title;
                 }
                 else if (room.MentorId == currentUserId.Value && room.Client != null)
                 {
-                    title = $"Чат с {room.Client.FirstName ?? room.Client.Login}";
+                    title = string.IsNullOrEmpty(title) ? $"Чат с {room.Client.FirstName ?? room.Client.Login} {room.Client.LastName ?? ""}".Trim() : title;
                 }
             }
 
-            // Если Client или Mentor не загружены (маловероятно с Include, но для надежности)
-            var clientName = $"{room.Client?.FirstName} {room.Client?.LastName}" ?? "Клиент";
-            var mentorName = $"{room.Mentor?.FirstName} {room.Mentor?.LastName}"  ?? "Ментор";
+            var clientName = $"{room.Client?.FirstName ?? ""} {room.Client?.LastName ?? ""}".Trim();
+            if (string.IsNullOrWhiteSpace(clientName)) clientName = room.Client?.Login ?? "Клиент";
 
+            var mentorName = $"{room.Mentor?.FirstName ?? ""} {room.Mentor?.LastName ?? ""}".Trim();
+            if (string.IsNullOrWhiteSpace(mentorName)) mentorName = room.Mentor?.Login ?? "Ментор";
 
             return new ChatRoomDTO
             {
@@ -288,8 +323,8 @@ namespace ConsultantPlatform.Service
                 ClientName = clientName,
                 MentorId = room.MentorId,
                 MentorName = mentorName,
-                LastMessage = lastMessage != null ? MapMessageToDTO(lastMessage, lastMessage.Sender?.FirstName ?? lastMessage.Sender?.Login) : null,
-                // UnreadMessagesCount = ... // Потребует отдельной логики, если нужно
+                LastMessage = lastMessageEntity != null ? MapMessageToDTO(lastMessageEntity, lastMessageEntity.Sender?.FirstName ?? lastMessageEntity.Sender?.Login) : null,
+                UnreadMessagesCount = unreadMessagesCount ?? 0 // Используем переданное значение
             };
         }
 
@@ -305,7 +340,7 @@ namespace ConsultantPlatform.Service
                 SenderName = senderName ?? message.Sender?.FirstName ?? message.Sender?.Login ?? "Пользователь", // Если senderName не передан, пытаемся взять из сущности
                 MessageContent = message.Message1,
                 DateSent = message.DateSent,
-                // IsRead = ... // Потребует отдельной логики
+                IsRead = message.IsRead
             };
         }
     }
