@@ -82,10 +82,10 @@
     <main class="container">
         <div class="survey">
             <h1 class="survey-title">Создание анкеты консультанта</h1>
-            <form class="form">
+            <form class="create-card-form form">
                 <div class="input-wrapper">
                     <label class="label" for="specialization">Специализация / название</label>
-                    <input class="input" id="specialization" type="text" maxlength="200" 
+                    <input class="input" id="specialization" type="text" minlength="5" maxlength="200" 
                     spellcheck="true" required/>       
                 </div>
                 
@@ -100,13 +100,13 @@
                             </div>
                             
                             <label for="position-1" class="visually-hidden">Должность</label>
-                            <input id="position-1" class="input" type="text" placeholder="Должность">
+                            <input id="position-1" class="input" type="text" placeholder="Должность" minlength="1" maxlength="255" required>
                             
                             <label for="company-1" class="visually-hidden">Компания</label>
-                            <input id="company-1" class="input" type="text" placeholder="Компания">
+                            <input id="company-1" class="input" type="text" placeholder="Компания" minlength="1" maxlength="255" required>
                             
                             <label for="duration-1" class="visually-hidden">Срок работы</label>
-                            <input id="duration-1" class="input duration" type="number" placeholder="Срок работы (в годах)">
+                            <input id="duration-1" class="input duration" type="number" placeholder="Срок работы (в годах)" min="1" max="100" required>
                         </div>
                     </div>
 
@@ -114,10 +114,11 @@
                 </div>
                 
                 <div class="dropdown-container">
-                    <div class="dropdown" onclick="toggleDropdown()">Сфера деятельности</div>
+                    <div class="dropdown" onclick="toggleDropdown()">Сферы деятельности</div>
                     <div class="dropdown-options" id="options">
                         <!-- Сферы деятельности будут добавляться сюда динамически -->
                     </div>
+                    <div class="picked-field-options" onclick="toggleOptionsDisplay()"></div>
                 </div>
 
                 <div class="input-wrapper">
@@ -127,11 +128,11 @@
 
                 <div class="input-wrapper">
                     <label class="label" for="description">Описание сферы деятельности</label>
-                    <textarea class="description-input" id="description" spellcheck="true" required></textarea>    
+                    <textarea class="description-input" id="description" spellcheck="true" minlength="0" maxlength="3000" ></textarea>    
                 </div>
                 
                 <div class="actions-wrapper">
-                    <button class="button" type="submit">Сохранить анкету</button>
+                    <button class="button" type="submit">Создать анкету</button>
                     <a class="button" href="./user_profile.html">Отмена</a>
                 </div>
             </form>
@@ -188,6 +189,20 @@
             </div>
         </div>
     </footer>
+
+    <dialog class="showing-error-window" id="showingError">
+        <div class="dialog-text"></div>
+        <div class="dialog-actions-wrapper">
+            <button class="dialog-button" onclick="showingError.close()">Ок</button>
+        </div>
+    </dialog>
+
+    <dialog class="showing-success-window" id="showingSuccess">
+        <div class="dialog-text">Анкета успешно создана!</div>
+        <div class="dialog-actions-wrapper">
+            <a class="dialog-button" href="./user_profile.html">Ок</a>
+        </div>
+    </dialog>
 
     <script src="../js/create_modify_card_script.js"></script>
 </body>

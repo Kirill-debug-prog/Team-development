@@ -1,6 +1,11 @@
 //проверка на авторизацию
 if (getCookie('token')) {
     setUserName();
+} else {
+    // если токен истек (данные в localStorage остаются)
+    if (localStorage.getItem('id')) {
+        redirectToLogin();
+    }
 }
 
 function setUserName() {
@@ -67,6 +72,11 @@ function renderMentorCard(mentor) {
     document.querySelector('.card-title').textContent = mentor.title || ''
     document.querySelector('.card-description').textContent = mentor.description || ''
 
+    // если авторизованный сейчас пользователь !== создатель анкеты, то показывает кнопку "написать"
+    if (localStorage.getItem('id')!==mentor.mentorId) {
+        document.querySelector('.message-button').classList.remove('display-none')
+    }
+
     const experienceList = document.querySelector('.experience-list')
     experienceList.innerHTML = ''
     let totalYears = 0
@@ -112,20 +122,71 @@ function pluralizeYears (n) {
     if (lastDigit >= 2 && lastDigit <= 4) return `${n} года`
     return `${n} лет`
 }
-<<<<<<< HEAD
-=======
 
-
-function redirectToChat() {
-    if (!getCookie('token')) {
+async function redirectToChat(cardId) {
+    const token = getCookie('token');
+    if (!token) {
         if (localStorage.getItem('id')) {
             redirectToLogin();
+            return;
         }
         showingUnauth.showModal();
+        return;
     }
 
-    //... перенаправление на чат с пользователем
+    const button = document.querySelector('.message-button');
+    const mentorId = button?.dataset?.mentorId;
+
+    if (!mentorId) {
+        console.error("Ошибка: не удалось получить ID ментора.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://89.169.3.43/api/chat/rooms/with/${mentorId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                redirectToLogin();
+                return;
+            }
+            const error = await response.json();
+            alert(error?.message || 'Произошла ошибка при создании чата.');
+            return;
+        }
+
+        const chatRoom = await response.json();
+        if (!chatRoom?.id || !mentorId) {
+            alert('Ошибка: не удалось получить ID комнаты или ментора.');
+            return;
+        }
+
+        //Извлекаем title карточки
+        const cardResponce = await fetch(`http://89.169.3.43/api/consultant-cards/${cardId}`)
+        const cardDate = await cardResponce.json();
+        const cardTitle = cardDate.title
+        const encodedTitle = decodeURIComponent(cardTitle)
+        console.log('Card Title:', encodedTitle)
+
+        localStorage.setItem(`chatTitle-${chatRoom.id}`, cardTitle)
+
+        //Перенаправляем на страницу чата с roomId, mentorId и title
+        const roomId = encodeURIComponent(chatRoom.id);
+        const mentor = encodeURIComponent(mentorId);
+        window.location.href = `../html/chats.html?roomId=${roomId}&mentorId=${mentor}&title=${encodedTitle}`;
+
+    } catch (error) {
+        console.error("Ошибка при создании чата:", error);
+        alert('Произошла ошибка при создании чата. Пожалуйста, попробуйте позже.');
+    }
 }
+    
 
 function redirectToLogin() {
     localStorage.setItem('expiredMessage', 'Ваша сессия устарела.');
@@ -137,4 +198,17 @@ function redirectToLogin() {
 
     window.location.href = './login.html';
 }
->>>>>>> frontend
+
+const urlParams = new URLSearchParams(window.location.search)
+const cardId = urlParams.get('id')
+
+fetch(`http://89.169.3.43/api/consultant-cards/${cardId}`)
+    .then(response => response.json())
+    .then(cardData => {
+        // Получаем данные из ответа API
+        const mentorId = cardData.mentorId
+        
+        console.log(mentorId)
+
+        document.querySelector('.message-button').dataset.mentorId = mentorId;
+    })

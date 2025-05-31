@@ -53,7 +53,7 @@ address {
 
 .header-menu-user-wrapper {
   display: flex;
-  column-gap: 90px;
+  column-gap: 60px;
   align-items: center;
   font-size: 12px;
   padding-block: 15px;
@@ -65,8 +65,13 @@ address {
 }
 
 .header-menu-link div,
-.user-names {
+header.header .user-names {
   text-align: center;
+}
+
+header.header .user-names {
+  word-wrap: break-word;
+  max-width: 150px;
 }
 
 .display-none {
