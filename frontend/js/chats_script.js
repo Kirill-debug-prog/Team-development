@@ -247,7 +247,6 @@ async function startSignalR(roomId) {
 function appendMessageToChat(senderId, messageText, dateSent) {
 
     const messageList = document.querySelector('.message-list')
-    messageList.innerHTML = ''
 
     const messageDate = dateSent
         ? new Date(dateSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -327,7 +326,7 @@ function renderMessages(messages) {
 
     let lastDateGroup = null;
 
-    messages.reverse().forEach(({ senderId, messageContent, dateSent }) => {
+    messages.forEach(({ senderId, messageContent, dateSent }) => {
         const currentDateGroup = formatDateGroup(dateSent)
 
         // Если дата группы изменилась — вставляем заголовок
