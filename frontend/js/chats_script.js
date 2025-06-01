@@ -141,6 +141,11 @@ chatListElement.addEventListener('click', (event) => {
     const chat = event.target.closest('.chat-item');
     if (!chat) return;
 
+    const counter = chat.querySelector('.unread-messages-counter');
+    if (counter) {
+        counter.textContent = '';
+    }
+
     document.querySelector('.message-list')?.remove();
 
     currentChatElement.innerHTML = `
@@ -229,18 +234,46 @@ async function startSignalR(roomId) {
         .configureLogging(signalR.LogLevel.Information)
         .build();
 
-    connection.on("ReceiveMessage", (senderId, messageText) => {
-        console.log("Новое сообщение:", messageText);
-        appendMessageToChat(senderId, messageText);
+    // connection.on("ReceiveMessage", (senderId, messageText) => {
+    //     console.log("Новое сообщение:", messageText);
+    //     appendMessageToChat(senderId, messageText);
+    // });
+
+    connection.on("ReceiveMessage", (message) => {
+        console.log("Новое сообщение:", message);
+        handleIncomingMessage(message);
     });
 
+
     try {
-        await connection.start();
-        console.log("Подключение к SignalR успешно установлено");
+    await connection.start();
+    console.log("Подключение к SignalR успешно установлено");
+
+    //Присоединяемся к комнате
+    await connection.invoke("JoinRoom", roomId);
+    console.log("Присоединились к комнате:", roomId);
     } catch (error) {
         console.error("Ошибка подключения к SignalR:", error);
         setTimeout(() => startSignalR(roomId), 5000);
     }
+
+}
+
+function handleIncomingMessage(message) {
+    const roomId = message.roomId;
+    const currentOpenedChat = document.querySelector('.picked-chat');
+
+    if (currentOpenedChat && currentOpenedChat.getAttribute('data-chat-id') === roomId) {
+        appendMessageToChat(message.senderId, message.text);
+        return;
+    }
+
+    const chatCard = document.querySelector(`.chat-item[data-chat-id="${roomId}"]`);
+    if (!chatCard) return;
+
+    const counter = chatCard.querySelector('.unread-messages-counter');
+    let currentCount = parseInt(counter.textContent) || 0;
+    counter.textContent = currentCount + 1;
 }
 
 // --------------------- ОТРИСОВКА СООБЩЕНИЙ ---------------------
