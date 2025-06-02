@@ -54,6 +54,7 @@ function getCookie(name) {
 
 document.addEventListener("DOMContentLoaded", async() => {
     await loadChats();
+    await startSignalRForAllRooms()
 });
 
 async function loadChats() {
@@ -88,6 +89,46 @@ async function loadChats() {
         document.body.innerHTML = `Ошибка "${error.message}". Попробуйте перезагрузить страницу`;
     }
 }
+
+async function startSignalRForAllRooms() {
+    const chats= document.querySelectorAll('.chat-item')
+    for (const chat of chats) {
+        const rooId = chat.getAttribute('data-chat-id')
+        await joinRoomSignalIR(rooId)
+    }
+}
+
+async function joinRoomSignalIR(roomId) {
+    if(!connection) {
+        connection = new signalR.HubConnectionBuilder()
+        .withUrl(`http://89.169.3.43/chathub`, {
+            accessTokenFactory: () => getCookie('token'),
+        })
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+        }
+
+        connection.on("ReceiveMessage", (message) => {
+            console.log("Новое сообщение:", message);
+            handleIncomingMessage(message);
+        });
+
+        try {
+            await connection.start()
+            console.log("Подключение к SignalR успешно установлено")
+        } catch (error) {
+            console.error("Ошибка подключения к SignalR:", error);
+            return;
+        }
+
+        //Присоедеенение к комнате
+        try {
+            await connection.invoke("JoinRoom", roomId);
+            console.log("Присоединились к комнате:", roomId);
+        } catch (error) {
+            console.error("Ошибка при присоединении к комнате:", error);
+        }
+    }
 
 function addChats(chats) {
     const chatListElement = document.querySelector('.chat-list');
@@ -140,6 +181,11 @@ const currentChatElement = document.querySelector(".current-chat");
 chatListElement.addEventListener('click', (event) => {
     const chat = event.target.closest('.chat-item');
     if (!chat) return;
+
+    const counter = chat.querySelector('.unread-messages-counter');
+    if (counter) {
+        counter.textContent = '';
+    }
 
     document.querySelector('.message-list')?.remove();
 
@@ -229,25 +275,52 @@ async function startSignalR(roomId) {
         .configureLogging(signalR.LogLevel.Information)
         .build();
 
-    connection.on("ReceiveMessage", (senderId, messageText) => {
-        console.log("Новое сообщение:", messageText);
-        appendMessageToChat(senderId, messageText);
+    // connection.on("ReceiveMessage", (senderId, messageText) => {
+    //     console.log("Новое сообщение:", messageText);
+    //     appendMessageToChat(senderId, messageText);
+    // });
+
+    connection.on("ReceiveMessage", (message) => {
+        console.log("Новое сообщение:", message);
+        handleIncomingMessage(message);
     });
 
+
     try {
-        await connection.start();
-        console.log("Подключение к SignalR успешно установлено");
+    await connection.start();
+    console.log("Подключение к SignalR успешно установлено");
+
+    //Присоединяемся к комнате
+    await connection.invoke("JoinRoom", roomId);
+    console.log("Присоединились к комнате:", roomId);
     } catch (error) {
         console.error("Ошибка подключения к SignalR:", error);
         setTimeout(() => startSignalR(roomId), 5000);
     }
+
+}
+
+function handleIncomingMessage(message) {
+    const roomId = message.roomId;
+    const currentOpenedChat = document.querySelector('.picked-chat');
+
+    if (currentOpenedChat && currentOpenedChat.getAttribute('data-chat-id') === roomId) {
+        appendMessageToChat(message.senderId, message.text);
+        return;
+    }
+
+    const chatCard = document.querySelector(`.chat-item[data-chat-id="${roomId}"]`);
+    if (!chatCard) return;
+
+    const counter = chatCard.querySelector('.unread-messages-counter');
+    let currentCount = parseInt(counter.textContent) || 0;
+    counter.textContent = currentCount + 1;
 }
 
 // --------------------- ОТРИСОВКА СООБЩЕНИЙ ---------------------
 function appendMessageToChat(senderId, messageText, dateSent) {
 
     const messageList = document.querySelector('.message-list')
-    messageList.innerHTML = ''
 
     const messageDate = dateSent
         ? new Date(dateSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -327,7 +400,7 @@ function renderMessages(messages) {
 
     let lastDateGroup = null;
 
-    messages.reverse().forEach(({ senderId, messageContent, dateSent }) => {
+    messages.forEach(({ senderId, messageContent, dateSent }) => {
         const currentDateGroup = formatDateGroup(dateSent)
 
         // Если дата группы изменилась — вставляем заголовок
