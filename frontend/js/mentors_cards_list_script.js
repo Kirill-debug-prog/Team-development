@@ -440,7 +440,6 @@ function appFilters() {
     const maxExperience = document.getElementById('max-experience').value || 100
     const selectedSector = Array.from(document.querySelectorAll('.dropdown-options input:checked'))
         .map(checkbox => checkbox.value)
-    const sortBy = document.getElementById('variant')?.value;
     const sortDirection = document.getElementById('route')?.value;
 
     const queryParams = new URLSearchParams()
@@ -453,8 +452,10 @@ function appFilters() {
         queryParams.append('categoryIds', id)
     })
 
-    if (sortBy) queryParams.append('sortBy', sortBy);
-    if (sortDirection) queryParams.append('sortDirection', sortDirection);
+    if (sortDirection) {
+        queryParams.append('sortBy', 'price')
+        queryParams.append('sortDirection', sortDirection)
+    }
 
     fetchResults(queryParams.toString())
 }
@@ -555,7 +556,6 @@ function resetFilters() {
     });
 
     document.getElementById('variant').value = '';
-    document.getElementById('route').value = '';
 }
 
 // // Функция для поиска менторов
