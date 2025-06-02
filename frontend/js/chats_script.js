@@ -53,8 +53,9 @@ function getCookie(name) {
 
 
 document.addEventListener("DOMContentLoaded", async() => {
-    await loadChats();
-    await startSignalRForAllRooms()
+    await loadChats()
+    await startSignalR()
+    await joinRoomSignalIR()
 });
 
 async function loadChats() {
@@ -90,45 +91,18 @@ async function loadChats() {
     }
 }
 
-async function startSignalRForAllRooms() {
-    const chats= document.querySelectorAll('.chat-item')
-    for (const chat of chats) {
-        const rooId = chat.getAttribute('data-chat-id')
-        await joinRoomSignalIR(rooId)
-    }
-}
-
-async function joinRoomSignalIR(roomId) {
-    if(!connection) {
-        connection = new signalR.HubConnectionBuilder()
-        .withUrl(`http://89.169.3.43/chathub`, {
-            accessTokenFactory: () => getCookie('token'),
-        })
-        .configureLogging(signalR.LogLevel.Information)
-        .build();
-        }
-
-        connection.on("ReceiveMessage", (message) => {
-            console.log("Новое сообщение:", message);
-            handleIncomingMessage(message);
-        });
-
-        try {
-            await connection.start()
-            console.log("Подключение к SignalR успешно установлено")
-        } catch (error) {
-            console.error("Ошибка подключения к SignalR:", error);
-            return;
-        }
-
-        //Присоедеенение к комнате
+async function joinRoomSignalIR() {
+    const chatItems = document.querySelectorAll('.chat-item');
+    for (const chatItem of chatItems) {
+        const roomId = chatItem.getAttribute('data-chat-id');
         try {
             await connection.invoke("JoinRoom", roomId);
-            console.log("Присоединились к комнате:", roomId);
+            console.log(`Успешно присоединились к комнате ${roomId}`);
         } catch (error) {
-            console.error("Ошибка при присоединении к комнате:", error);
+            console.error(`Ошибка при присоединении к комнате ${roomId}:`, error);
         }
     }
+}
 
 function addChats(chats) {
     const chatListElement = document.querySelector('.chat-list');
@@ -263,22 +237,17 @@ chatListElement.addEventListener('click', (event) => {
 // --------------------- SIGNALR ---------------------
 let connection;
 
-async function startSignalR(roomId) {
+async function startSignalR() {
     if (connection && connection.state === "Connected") {
         await connection.stop();
     }
 
     connection = new signalR.HubConnectionBuilder()
-        .withUrl(`http://89.169.3.43/chathub?roomId=${roomId}`, {
+        .withUrl(`http://89.169.3.43/chathub`, {
             accessTokenFactory: () => getCookie('token'),
         })
         .configureLogging(signalR.LogLevel.Information)
         .build();
-
-    // connection.on("ReceiveMessage", (senderId, messageText) => {
-    //     console.log("Новое сообщение:", messageText);
-    //     appendMessageToChat(senderId, messageText);
-    // });
 
     connection.on("ReceiveMessage", (message) => {
         console.log("Новое сообщение:", message);
@@ -287,15 +256,11 @@ async function startSignalR(roomId) {
 
 
     try {
-    await connection.start();
-    console.log("Подключение к SignalR успешно установлено");
-
-    //Присоединяемся к комнате
-    await connection.invoke("JoinRoom", roomId);
-    console.log("Присоединились к комнате:", roomId);
+        await connection.start();
+        console.log("Подключение к SignalR успешно установлено");
     } catch (error) {
         console.error("Ошибка подключения к SignalR:", error);
-        setTimeout(() => startSignalR(roomId), 5000);
+        setTimeout(startSignalR(), 5000);
     }
 
 }
