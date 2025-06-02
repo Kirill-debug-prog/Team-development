@@ -440,7 +440,7 @@ function appFilters() {
     const maxExperience = document.getElementById('max-experience').value || 100
     const selectedSector = Array.from(document.querySelectorAll('.dropdown-options input:checked'))
         .map(checkbox => checkbox.value)
-    const sortDirection = document.getElementById('route')?.value;
+    const sortDirection = document.getElementById('variant')?.value;
 
     const queryParams = new URLSearchParams()
 

@@ -270,7 +270,7 @@ function handleIncomingMessage(message) {
     const currentOpenedChat = document.querySelector('.picked-chat');
 
     if (currentOpenedChat && currentOpenedChat.getAttribute('data-chat-id') === roomId) {
-        appendMessageToChat(message.senderId, message.text);
+        appendMessageToChat(message.senderId, message.messageContent, message.dateSent);
         return;
     }
 
@@ -283,7 +283,7 @@ function handleIncomingMessage(message) {
 }
 
 // --------------------- ОТРИСОВКА СООБЩЕНИЙ ---------------------
-function appendMessageToChat(senderId, messageText, dateSent) {
+function appendMessageToChat(senderId, messageText, dateSent, isRead = false) {
 
     const messageList = document.querySelector('.message-list')
 
@@ -293,12 +293,14 @@ function appendMessageToChat(senderId, messageText, dateSent) {
 
     let newMessage = document.createElement("div")
     newMessage.classList.add("message");
-    if (senderId === localStorage.getItem('id')) {
-        newMessage.classList.add("sender-me")
-    }
 
-    let notification = document.createElement('div')
-    notification.classList.add('notification-message')
+    const isOwnMessage = senderId === localStorage.getItem('id');
+    if (isOwnMessage) {
+        newMessage.classList.add("sender-me");
+        if (isRead) {
+            newMessage.classList.add("unread-message");
+        }
+    }
 
     newMessage.innerHTML = `
         <div class="message-text">${escapeHtml(messageText)}</div>
@@ -365,7 +367,7 @@ function renderMessages(messages) {
 
     let lastDateGroup = null;
 
-    messages.forEach(({ senderId, messageContent, dateSent }) => {
+    messages.forEach(({ senderId, messageContent, dateSent, isRead }) => {
         const currentDateGroup = formatDateGroup(dateSent)
 
         // Если дата группы изменилась — вставляем заголовок
@@ -381,8 +383,13 @@ function renderMessages(messages) {
         const messageDate = new Date(dateSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         let messageDiv = document.createElement('div')
         messageDiv.classList.add('message')
-        if (senderId === localStorage.getItem('id')) {
-            messageDiv.classList.add('sender-me')
+
+        const isOwnMessage = senderId === localStorage.getItem('id');
+        if (isOwnMessage) {
+            messageDiv.classList.add('sender-me');
+            if (isRead) {
+                messageDiv.classList.add('unread-message');
+            }
         }
         
         messageDiv.innerHTML = `
