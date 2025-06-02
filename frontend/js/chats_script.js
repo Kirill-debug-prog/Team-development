@@ -54,6 +54,7 @@ function getCookie(name) {
 
 document.addEventListener("DOMContentLoaded", async() => {
     await loadChats();
+    await startSignalRForAllRooms()
 });
 
 async function loadChats() {
@@ -88,6 +89,46 @@ async function loadChats() {
         document.body.innerHTML = `Ошибка "${error.message}". Попробуйте перезагрузить страницу`;
     }
 }
+
+async function startSignalRForAllRooms() {
+    const chats= document.querySelectorAll('.chat-item')
+    for (const chat of chats) {
+        const rooId = chat.getAttribute('data-chat-id')
+        await joinRoomSignalIR(rooId)
+    }
+}
+
+async function joinRoomSignalIR(roomId) {
+    if(!connection) {
+        connection = new signalR.HubConnectionBuilder()
+        .withUrl(`http://89.169.3.43/chathub`, {
+            accessTokenFactory: () => getCookie('token'),
+        })
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+        }
+
+        connection.on("ReceiveMessage", (message) => {
+            console.log("Новое сообщение:", message);
+            handleIncomingMessage(message);
+        });
+
+        try {
+            await connection.start()
+            console.log("Подключение к SignalR успешно установлено")
+        } catch (error) {
+            console.error("Ошибка подключения к SignalR:", error);
+            return;
+        }
+
+        //Присоедеенение к комнате
+        try {
+            await connection.invoke("JoinRoom", roomId);
+            console.log("Присоединились к комнате:", roomId);
+        } catch (error) {
+            console.error("Ошибка при присоединении к комнате:", error);
+        }
+    }
 
 function addChats(chats) {
     const chatListElement = document.querySelector('.chat-list');
