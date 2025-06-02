@@ -229,7 +229,7 @@ chatListElement.addEventListener('click', (event) => {
     });
 
     const roomId = chat.getAttribute('data-chat-id');
-    startSignalR(roomId);
+    startSignalR();
 
     loadMessages(roomId)
 });
@@ -297,7 +297,7 @@ function appendMessageToChat(senderId, messageText, dateSent, isRead = false) {
     const isOwnMessage = senderId === localStorage.getItem('id');
     if (isOwnMessage) {
         newMessage.classList.add("sender-me");
-        if (isRead) {
+        if (!isRead) {
             newMessage.classList.add("unread-message");
         }
     }
@@ -387,7 +387,7 @@ function renderMessages(messages) {
         const isOwnMessage = senderId === localStorage.getItem('id');
         if (isOwnMessage) {
             messageDiv.classList.add('sender-me');
-            if (isRead) {
+            if (!isRead) {
                 messageDiv.classList.add('unread-message');
             }
         }

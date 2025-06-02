@@ -130,6 +130,21 @@ main {
   border-bottom: 1px solid #e1e2ff;
 }
 
+.chats,
+.chat-info-wrapper,
+.chat-header,
+.current-chat {
+min-width: 0;
+}
+
+.chat-title,
+.current-chat-title,
+.interlocutor-name,
+.current-interlocutor-name {
+min-width: 0;
+overflow-wrap: break-word;
+}
+
 .close-chat-button {
   border: none;
   background: url("../icons/cross.svg") center/50% no-repeat;

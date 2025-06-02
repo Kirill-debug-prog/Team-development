@@ -556,6 +556,8 @@ function resetFilters() {
     });
 
     document.getElementById('variant').value = '';
+
+    document.querySelectorAll('.picked-field-options').classList.add('hide-options');
 }
 
 // // Функция для поиска менторов
