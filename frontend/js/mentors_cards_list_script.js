@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 async function loadConsultanstCards() {
   try {
-    const response = await fetch("https://89.169.3.43/api/consultant-cards");
+    const response = await fetch("http://89.169.3.43/api/consultant-cards");
 
     if (!response.ok) {
       throw new Error("Failed to fetch consultant cards");
@@ -330,7 +330,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 async function loadDropdownOptions() {
   try {
-    const response = await fetch("https://89.169.3.43/api/category");
+    const response = await fetch("http://89.169.3.43/api/category");
 
     if (!response.ok) {
       throw new Error("Failed to load activity sectors");
@@ -412,7 +412,7 @@ async function applySortingAndReload() {
   const sortBy = "price";
   const sortDirection = document.getElementById("variant").value;
 
-  const url = new URL("https://89.169.3.43/api/consultant-cards");
+  const url = new URL("http://89.169.3.43/api/consultant-cards");
   url.searchParams.append("sortBy", sortBy);
   url.searchParams.append("sortDirection", sortDirection);
 
@@ -497,7 +497,7 @@ function appFilters() {
 async function fetchResults(filters) {
   try {
     const response = await fetch(
-      "https://89.169.3.43/api/consultant-cards?" + filters,
+      "http://89.169.3.43/api/consultant-cards?" + filters,
       {
         method: "GET",
         headers: {
@@ -644,7 +644,7 @@ async function searchMentors(query) {
     }).toString();
 
     const response = await fetch(
-      "https://89.169.3.43/api/consultant-cards?" + queryParams,
+      "http://89.169.3.43/api/consultant-cards?" + queryParams,
       {
         method: "GET",
         headers: {
