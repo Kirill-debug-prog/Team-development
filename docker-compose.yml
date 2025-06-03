@@ -1,61 +1,51 @@
 version: '3.8'
 
 services:
-  # Сервис базы данных PostgreSQL
   db:
-    image: postgres:latest # Используем официальный образ PostgreSQL
+    image: postgres:latest
     restart: always
-    environment: # Переменные окружения для настройки БД (берутся из .env)
+    environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - db_data:/var/lib/postgresql/data # Постоянное хранилище данных БД
-    # !!! Раскомментировали секцию dns !!!
+      - db_data:/var/lib/postgresql/data
     dns:
-      - 8.8.8.8 # Используем DNS-сервер Google
-      - 8.8.4.4 # Резервный DNS-сервер Google 
+      - 8.8.8.8
+      - 8.8.4.4
 
-  # Сервис бэкенда ASP.NET
   backend:
-    build: ./ConsultantPlatform # Собираем образ из Dockerfile в папке ./backend
+    build: ./ConsultantPlatform
     restart: always
     environment:
-      # Строка подключения к БД из контейнера бэкенда.
-      # В качестве хоста используем имя сервиса БД - "db"
       ConnectionStrings:DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
-      # Если вы добавляли эту строку для обхода проблемы и она не помогла,
-      # или если проблема была только в DNS, то можно ее удалить.
-      # ENV DOTNET_SYSTEM_NET_DISABLEIPV6=true
-      # Добавьте другие переменные окружения, если нужны для бэкенда
+      ASPNETCORE_URLS: http://+:80
     expose:
-      - "80" # Бэкенд слушает на порту 80 внутри контейнера (см. Dockerfile бэкенда)
-              # Этот порт доступен другим контейнерам в сети Docker Compose, но не хосту напрямую
+      - "80"
     depends_on:
-      - db # Указываем зависимость от БД, чтобы БД запускалась первой
-    # !!! Раскомментировали секцию dns !!!
+      - db
     dns:
-      - 8.8.8.8 # Используем DNS-сервер Google
-      - 8.8.4.4 # Резервный DNS-сервер Google
+      - 8.8.8.8
+      - 8.8.4.4
 
-
-  # Сервис веб-сервера Nginx (отдает фронтенд и проксирует на бэкенд)
   nginx:
     build:
-      context: .  # <--- Контекст сборки - корень проекта
-      dockerfile: ./nginx/Dockerfile # <--- Путь к Dockerfile от корня
+      context: .
+      dockerfile: ./nginx/Dockerfile
     restart: always
     ports:
-      - "80:80" # Пробрасываем порт 80 с хоста на порт 80 контейнера Nginx
-                # Через этот порт вы будете заходить в браузере (http://localhost)
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt/live/youmentor.ru:/etc/letsencrypt/live/youmentor.ru:ro
+      - /etc/letsencrypt/archive/youmentor.ru:/etc/letsencrypt/archive/youmentor.ru:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
     depends_on:
-      - backend # Зависимость от бэкенда, чтобы Nginx запускался после него
-    # !!! Раскомментировали секцию dns !!!
+      - backend
     dns:
-      - 8.8.8.8 # Используем DNS-сервер Google
-      - 8.8.4.4 # Резервный DNS-сервер Google
+      - 8.8.8.8
+      - 8.8.4.4
 
-
-# Определение тома для постоянного хранения данных БД
 volumes:
   db_data:
