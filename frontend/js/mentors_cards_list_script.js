@@ -557,7 +557,11 @@ function resetFilters() {
 
     document.getElementById('variant').value = '';
 
-    document.querySelectorAll('.picked-field-options').classList.add('hide-options');
+    const pickedOptions = document.querySelector(".picked-field-options");
+    pickedOptions.forEach(option => {
+        option.textContent = '';
+        option.classList.add('hide-options');
+    })
 }
 
 // // Функция для поиска менторов
