@@ -152,7 +152,7 @@ function addChats(chats) {
 const chatListElement = document.querySelector(".chat-list");
 const currentChatElement = document.querySelector(".current-chat");
 
-chatListElement.addEventListener('click', (event) => {
+chatListElement.addEventListener('click', async (event) => {
     const chat = event.target.closest('.chat-item');
     if (!chat) return;
 
@@ -229,7 +229,15 @@ chatListElement.addEventListener('click', (event) => {
     });
 
     const roomId = chat.getAttribute('data-chat-id');
-    startSignalR();
+    
+    if (connection && connection.state === "Connected") {
+        try {
+            await connection.invoke("JoinRoom", roomId)
+            console.log(`Успешное примоедеение к комнате${roomId}`)
+        } catch{
+            console.error(`Ошибка присоеденения к комнате ${roomId}:`, error)
+        }
+    }
 
     loadMessages(roomId)
 });
@@ -260,7 +268,7 @@ async function startSignalR() {
         console.log("Подключение к SignalR успешно установлено");
     } catch (error) {
         console.error("Ошибка подключения к SignalR:", error);
-        setTimeout(startSignalR(), 5000);
+        setTimeout(startSignalR, 5000);
     }
 
 }
