@@ -229,6 +229,8 @@ chatListElement.addEventListener('click', async (event) => {
     });
 
     const roomId = chat.getAttribute('data-chat-id');
+
+    currentChatElement.setAttribute('data-chat-id', roomId)
     
     if (connection && connection.state === "Connected") {
         try {
@@ -275,9 +277,9 @@ async function startSignalR() {
 
 function handleIncomingMessage(message) {
     const roomId = message.roomId;
-    const currentOpenedChat = document.querySelector('.picked-chat');
+    const currentOpenedChatRoomId = currentChatElement.setAttribute('data-chat-id', roomId);
 
-    if (currentOpenedChat && currentOpenedChat.getAttribute('data-chat-id') === roomId) {
+    if (currentOpenedChatRoomId === roomId) {
         appendMessageToChat(message.senderId, message.messageContent, message.dateSent);
         return;
     }
