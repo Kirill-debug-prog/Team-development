@@ -179,7 +179,7 @@ async function redirectToChat(cardId) {
         //Перенаправляем на страницу чата с roomId, mentorId и title
         const roomId = encodeURIComponent(chatRoom.id);
         const mentor = encodeURIComponent(mentorId);
-        window.location.href = `../html/chats.html?roomId=${roomId}&mentorId=${mentor}&title=${encodedTitle}`;
+        window.location.href = `/html/chats.html?roomId=${roomId}&mentorId=${mentor}&title=${encodedTitle}`;
 
     } catch (error) {
         console.error("Ошибка при создании чата:", error);

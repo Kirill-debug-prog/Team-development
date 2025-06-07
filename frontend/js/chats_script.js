@@ -277,7 +277,7 @@ async function startSignalR() {
 
 function handleIncomingMessage(message) {
     const roomId = message.roomId;
-    const currentOpenedChatRoomId = currentChatElement.setAttribute('data-chat-id', roomId);
+    const currentOpenedChatRoomId = currentChatElement.setAttribute('data-chat-id');
 
     if (currentOpenedChatRoomId === roomId) {
         appendMessageToChat(message.senderId, message.messageContent, message.dateSent);
