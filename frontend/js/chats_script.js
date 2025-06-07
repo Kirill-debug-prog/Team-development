@@ -91,19 +91,6 @@ async function loadChats() {
     }
 }
 
-async function joinRoomSignalIR() {
-    const chatItems = document.querySelectorAll('.chat-item');
-    for (const chatItem of chatItems) {
-        const roomId = chatItem.getAttribute('data-chat-id');
-        try {
-            await connection.invoke("JoinRoom", roomId);
-            console.log(`Успешно присоединились к комнате ${roomId}`);
-        } catch (error) {
-            console.error(`Ошибка при присоединении к комнате ${roomId}:`, error);
-        }
-    }
-}
-
 function addChats(chats) {
     const chatListElement = document.querySelector('.chat-list');
     if (chats.length === 0) {
@@ -142,6 +129,19 @@ function addChats(chats) {
 
             chatListElement.appendChild(chat);
         });
+    }
+}
+
+async function joinRoomSignalIR() {
+    const chatItems = document.querySelectorAll('.chat-item');
+    for (const chatItem of chatItems) {
+        const roomId = chatItem.getAttribute('data-chat-id');
+        try {
+            await connection.invoke("JoinRoom", roomId);
+            console.log(`Успешно присоединились к комнате ${roomId}`);
+        } catch (error) {
+            console.error(`Ошибка при присоединении к комнате ${roomId}:`, error);
+        }
     }
 }
 
@@ -277,7 +277,7 @@ async function startSignalR() {
 
 function handleIncomingMessage(message) {
     const roomId = message.roomId;
-    const currentOpenedChatRoomId = currentChatElement.setAttribute('data-chat-id');
+    const currentOpenedChatRoomId = currentChatElement.getAttribute('data-chat-id');
 
     if (currentOpenedChatRoomId === roomId) {
         appendMessageToChat(message.senderId, message.messageContent, message.dateSent);
