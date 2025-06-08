@@ -482,7 +482,6 @@ async function sendMessageHttp(roomId, messageText) {
         if (response.status === 201) {
             const messageDto = await response.json();
             console.log("Сообщение успешно отправлено", messageDto);
-            renderSingleMessage(messageDto)
             return messageDto;
         } else if (response.status === 401) {
             redirectToLogin();
