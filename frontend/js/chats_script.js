@@ -278,7 +278,7 @@ async function startSignalR() {
 let lastRenderedDateGroup = null
 
 function handleIncomingMessage(message) {
-    const roomId = message.roomId;
+    const roomId = message.chatRoomId;
     const currentChatElement = document.querySelector('.current-chat');
     const currentChatRoomId = currentChatElement?.getAttribute('data-chat-id');
 
