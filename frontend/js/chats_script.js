@@ -1,4 +1,4 @@
-//проверка на авторизацию
+s//проверка на авторизацию
 if (getCookie('token')) {
     setUserName();
 } else {
@@ -275,6 +275,8 @@ async function startSignalR() {
 
 }
 
+let lastRenderedDateGroup = null
+
 function handleIncomingMessage(message) {
     const roomId = message.roomId;
     const pickedChat = document.querySelector('.chat-item.picked-chat')
@@ -284,7 +286,9 @@ function handleIncomingMessage(message) {
     console.log('Выбранный id чат-комнаты:', pickedChatRoomId)
 
     if (pickedChatRoomId === message.roomId) {
-        appendMessageToChat(message.senderId, message.messageContent, message.dateSent);
+        const currentDateGroup = formatDateGroup(message.dateSent)
+        renderSingleMessage(message, lastRenderedDateGroup)
+        lastRenderedDateGroup = currentDateGroup
         return;
     }
 
@@ -296,7 +300,6 @@ function handleIncomingMessage(message) {
     counter.textContent = currentCount + 1;
 }
 
-// --------------------- ОТРИСОВКА СООБЩЕНИЙ ---------------------
 function appendMessageToChat(senderId, messageText, dateSent, isRead = false) {
 
     const messageList = document.querySelector('.message-list')
@@ -367,9 +370,11 @@ async function loadMessages(roomId) {
     }
 }
 
+// --------------------- ОТРИСОВКА СООБЩЕНИЙ ---------------------
 function renderMessages(messages) {
     const messageList = document.querySelector('.message-list');
     messageList.innerHTML = ''
+    lastRenderedDateGroup = null
 
     if (!messages || messages.length == 0) {
         const emptyMessage = document.createElement('p')
@@ -417,6 +422,39 @@ function renderMessages(messages) {
     messageList.scrollTop = messageList.scrollHeight
 }
 
+// --------------------- ОТРИСОВКА ОДНОГО СООБЩЕНИЯ ---------------------
+function renderSingleMessage(message, previousDateGroup  = null) {
+    const messageList = document.querySelector('.message-list')
+    const currentDateGroup = formatDateGroup(message.dateSent)
+
+    if (currentDateGroup !== previousDateGroup) {
+        const dateGroupDiv = document.createElement('div')
+        dateGroupDiv.classList.add('messages-date')
+        dateGroupDiv.textContent = currentDateGroup
+        messageList.appendChild(dateGroupDiv)
+    }
+
+    const messageDate = new Date(message.dateSent).toLocaleDateString([], {hour: '2-digit', minute: '2-digit'} )
+    let messageDiv  = document.createElement('div')
+    messageDiv.classList.add('message')
+
+    const isOwnMessage = message.senderId === localStorage.getItem('id')
+    if (isOwnMessage) {
+        messageDiv.classList.add('sender-me')
+        if(!message.isRead){
+            messageDiv.classList.add('unread-message')
+        }
+    }
+
+    messageDiv.innerHTML = `
+        <div class="message-text">${escapeHtml(message.messageContent)}</div>
+        <span class="message-time>${messageDate}</span>
+    `
+
+    messageList.appendChild(messageDiv)
+    messageList.scrollTop = messageList.scrollHeight
+}
+
 
 
 // --------------------- оТПРАВКА СООБЩЕНИЙ ---------------------
@@ -443,7 +481,7 @@ async function sendMessageHttp(roomId, messageText) {
         if (response.status === 201) {
             const messageDto = await response.json();
             console.log("Сообщение успешно отправлено", messageDto);
-            appendMessageToChat(messageDto.senderId, messageDto.messageContent, messageDto.dateSent);
+            renderSingleMessage(messageDto)
             return messageDto;
         } else if (response.status === 401) {
             redirectToLogin();
