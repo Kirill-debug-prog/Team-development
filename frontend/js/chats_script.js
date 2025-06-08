@@ -277,9 +277,13 @@ async function startSignalR() {
 
 function handleIncomingMessage(message) {
     const roomId = message.roomId;
-    const currentOpenedChatRoomId = currentChatElement.getAttribute('data-chat-id');
+    const pickedChat = document.querySelector('.chat-item.picked-chat')
+    const pickedChatRoomId = pickedChat?.getAttribute('data-chat-id')
 
-    if (currentOpenedChatRoomId === roomId) {
+    console.log('Входящее сообщение:', message)
+    console.log('Выбранный id чат-комнаты:', pickedChatRoomId)
+
+    if (pickedChatRoomId === message.roomId) {
         appendMessageToChat(message.senderId, message.messageContent, message.dateSent);
         return;
     }
