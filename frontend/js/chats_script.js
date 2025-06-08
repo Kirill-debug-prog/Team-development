@@ -285,6 +285,24 @@ function handleIncomingMessage(message) {
     console.log('Входящее сообщение:', message)
     console.log('Выбранный id чат-комнаты:', pickedChatRoomId)
 
+
+    const chatBody = document.querySelector('.chat-body');
+    if (chatBody) {
+        chatBody.insertAdjacentHTML('afterbegin',
+            `<div class="debug-toast" style="
+                background: yellow;
+                color: black;
+                padding: 4px 8px;
+                font-size: 12px;
+                border-bottom: 1px solid #ccc;
+            ">Получено новое сообщение</div>`
+        );
+        // и удалим его через 2 секунды, чтобы не засорять интерфейс
+        setTimeout(() => {
+            document.querySelector('.debug-toast')?.remove();
+        }, 2000);
+    }
+
     if (pickedChatRoomId === message.roomId) {
         const currentDateGroup = formatDateGroup(message.dateSent)
         renderSingleMessage(message, lastRenderedDateGroup)
