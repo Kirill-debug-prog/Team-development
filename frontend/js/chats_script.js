@@ -279,43 +279,39 @@ let lastRenderedDateGroup = null
 
 function handleIncomingMessage(message) {
     const roomId = message.roomId;
-    const pickedChat = document.querySelector('.chat-item.picked-chat')
-    const pickedChatRoomId = pickedChat?.getAttribute('data-chat-id')
+    const currentChatElement = document.querySelector('.current-chat');
+    const currentChatRoomId = currentChatElement?.getAttribute('data-chat-id');
 
-    console.log('Входящее сообщение:', message)
-    console.log('Выбранный id чат-комнаты:', pickedChatRoomId)
+    console.log('Получено сообщение для комнаты:', roomId, 'Текущий чат:', currentChatRoomId);
 
+    // Если сообщение для текущего открытого чата
+    if (currentChatRoomId === roomId) {
+        // Удаляем заглушку "Нет сообщений", если она есть
+        const noMessagesElement = document.querySelector('.no-messages');
+        if (noMessagesElement) {
+            noMessagesElement.remove();
+        }
 
-    const chatBody = document.querySelector('.chat-body');
-    if (chatBody) {
-        chatBody.insertAdjacentHTML('afterbegin',
-            `<div class="debug-toast" style="
-                background: yellow;
-                color: black;
-                padding: 4px 8px;
-                font-size: 12px;
-                border-bottom: 1px solid #ccc;
-            ">Получено новое сообщение</div>`
-        );
-        // и удалим его через 2 секунды, чтобы не засорять интерфейс
-        setTimeout(() => {
-            document.querySelector('.debug-toast')?.remove();
-        }, 2000);
-    }
-
-    if (pickedChatRoomId === message.roomId) {
-        const currentDateGroup = formatDateGroup(message.dateSent)
-        renderSingleMessage(message, lastRenderedDateGroup)
-        lastRenderedDateGroup = currentDateGroup
+        const currentDateGroup = formatDateGroup(message.dateSent);
+        renderSingleMessage(message, lastRenderedDateGroup);
+        lastRenderedDateGroup = currentDateGroup;
+        
+        // Помечаем сообщение как прочитанное
+        if (message.senderId !== localStorage.getItem('id')) {
+            markMessageAsRead(message.id);
+        }
         return;
     }
 
-    const chatCard = document.querySelector(`.chat-item[data-chat-id="${roomId}"]`);
-    if (!chatCard) return;
-
-    const counter = chatCard.querySelector('.unread-messages-counter');
-    let currentCount = parseInt(counter.textContent) || 0;
-    counter.textContent = currentCount + 1;
+    // Если сообщение для другого чата - обновляем счётчик
+    const chatCard = document.querySelector(.chat-item[data-chat-id="${roomId}"]);
+    if (chatCard) {
+        const counter = chatCard.querySelector('.unread-messages-counter');
+        if (counter) {
+            let currentCount = parseInt(counter.textContent) || 0;
+            counter.textContent = currentCount + 1;
+        }
+    }
 }
 
 function appendMessageToChat(senderId, messageText, dateSent, isRead = false) {
@@ -452,7 +448,7 @@ function renderSingleMessage(message, previousDateGroup  = null) {
         messageList.appendChild(dateGroupDiv)
     }
 
-    const messageDate = new Date(message.dateSent).toLocaleDateString([], {hour: '2-digit', minute: '2-digit'} )
+    const messageDate = new Date(message.dateSent).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'} )
     let messageDiv  = document.createElement('div')
     messageDiv.classList.add('message')
 
