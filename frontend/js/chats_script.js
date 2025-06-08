@@ -448,7 +448,7 @@ function renderSingleMessage(message, previousDateGroup  = null) {
 
     messageDiv.innerHTML = `
         <div class="message-text">${escapeHtml(message.messageContent)}</div>
-        <span class="message-time>${messageDate}</span>
+        <span class="message-time">${messageDate}</span>
     `
 
     messageList.appendChild(messageDiv)
