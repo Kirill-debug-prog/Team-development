@@ -1,4 +1,4 @@
-s//проверка на авторизацию
+//проверка на авторизацию
 if (getCookie('token')) {
     setUserName();
 } else {
