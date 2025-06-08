@@ -303,15 +303,15 @@ function handleIncomingMessage(message) {
         return;
     }
 
-    // Если сообщение для другого чата - обновляем счётчик
-    const chatCard = document.querySelector(.chat-item[data-chat-id="${roomId}"]);
-    if (chatCard) {
-        const counter = chatCard.querySelector('.unread-messages-counter');
-        if (counter) {
-            let currentCount = parseInt(counter.textContent) || 0;
-            counter.textContent = currentCount + 1;
-        }
-    }
+    // // Если сообщение для другого чата - обновляем счётчик
+    // const chatCard = document.querySelector(.chat-item[data-chat-id="${roomId}"]);
+    // if (chatCard) {
+    //     const counter = chatCard.querySelector('.unread-messages-counter');
+    //     if (counter) {
+    //         let currentCount = parseInt(counter.textContent) || 0;
+    //         counter.textContent = currentCount + 1;
+    //     }
+    // }
 }
 
 function appendMessageToChat(senderId, messageText, dateSent, isRead = false) {
