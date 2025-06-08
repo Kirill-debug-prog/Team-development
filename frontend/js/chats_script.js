@@ -279,40 +279,27 @@ let lastRenderedDateGroup = null
 
 function handleIncomingMessage(message) {
     const roomId = message.chatRoomId;
-    const currentChatElement = document.querySelector('.current-chat');
-    const currentChatRoomId = currentChatElement?.getAttribute('data-chat-id');
+    const pickedChat = document.querySelector('.chat-item.picked-chat');
+    const pickedChatRoomId = pickedChat?.getAttribute('data-chat-id');
 
-    console.log('Получено сообщение для комнаты:', roomId, 'Текущий чат:', currentChatRoomId);
+    console.log('Входящее сообщение:', message);
+    console.log('Выбранный id чат-комнаты:', pickedChatRoomId);
 
-    // Если сообщение для текущего открытого чата
-    if (currentChatRoomId === roomId) {
-        // Удаляем заглушку "Нет сообщений", если она есть
-        const noMessagesElement = document.querySelector('.no-messages');
-        if (noMessagesElement) {
-            noMessagesElement.remove();
-        }
-
-        const currentDateGroup = formatDateGroup(message.dateSent);
-        renderSingleMessage(message, lastRenderedDateGroup);
-        lastRenderedDateGroup = currentDateGroup;
-        
-        // Помечаем сообщение как прочитанное
-        if (message.senderId !== localStorage.getItem('id')) {
-            markMessageAsRead(message.id);
-        }
+    if (pickedChatRoomId === message.chatRoomId) {
+        const currentDateGroup = formatDateGroup(message.dateSent)
+        renderSingleMessage(message, lastRenderedDateGroup)
+        lastRenderedDateGroup = currentDateGroup
         return;
     }
 
-    // // Если сообщение для другого чата - обновляем счётчик
-    // const chatCard = document.querySelector(.chat-item[data-chat-id="${roomId}"]);
-    // if (chatCard) {
-    //     const counter = chatCard.querySelector('.unread-messages-counter');
-    //     if (counter) {
-    //         let currentCount = parseInt(counter.textContent) || 0;
-    //         counter.textContent = currentCount + 1;
-    //     }
-    // }
+    const chatCard = document.querySelector(`.chat-item[data-chat-id="${roomId}"]`);
+    if (!chatCard) return;
+
+    const counter = chatCard.querySelector('.unread-messages-counter');
+    let currentCount = parseInt(counter.textContent) || 0;
+    counter.textContent = currentCount + 1;
 }
+
 
 function appendMessageToChat(senderId, messageText, dateSent, isRead = false) {
 
